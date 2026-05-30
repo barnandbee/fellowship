@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Running Plan Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --surface3: #2e2e2e;
+    --border: #333;
+    --accent: #c8f542;
+    --accent2: #42d4f5;
+    --accent3: #f5a442;
+    --text: #f0f0f0;
+    --text2: #999;
+    --text3: #666;
+    --easy: #4ade80;
+    --long: #60a5fa;
+    --tempo: #f97316;
+    --intervals: #a78bfa;
+    --hills: #fb7185;
+    --rest: #333;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .header-actions { display: flex; gap: 12px; }
+
+  /* LAYOUT */
+  .app { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 65px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* MAIN */
+  .main { overflow-y: auto; padding: 24px; }
+
+  /* SECTION */
+  .section { display: flex; flex-direction: column; gap: 12px; }
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* SLIDER */
+  .slider-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .slider-label-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .slider-label { font-size: 13px; color: var(--text2); }
+  .slider-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+  }
+  .slider-val small { font-size: 11px; font-weight: 400; color: var(--text3); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* DAYS */
+  .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    transition: all 0.15s;
+    user-select: none;
+    font-family: 'DM Mono', monospace;
+  }
+  .day-toggle.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #d4fc50; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-outline:hover { border-color: var(--text2); color: var(--text); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-ghost { background: transparent; color: var(--text3); padding: 4px 8px; font-size: 11px; }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* RUN TYPE PILLS */
+  .run-types { display: flex; flex-wrap: wrap; gap: 6px; }
+  .run-type-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .run-type-pill[data-type="easy"]      { background: rgba(74,222,128,0.15); color: var(--easy);      border-color: rgba(74,222,128,0.3); }
+  .run-type-pill[data-type="long"]      { background: rgba(96,165,250,0.15); color: var(--long);      border-color: rgba(96,165,250,0.3); }
+  .run-type-pill[data-type="tempo"]     { background: rgba(249,115,22,0.15); color: var(--tempo);     border-color: rgba(249,115,22,0.3); }
+  .run-type-pill[data-type="intervals"] { background: rgba(167,139,250,0.15); color: var(--intervals); border-color: rgba(167,139,250,0.3); }
+  .run-type-pill[data-type="hills"]     { background: rgba(251,113,133,0.15); color: var(--hills);    border-color: rgba(251,113,133,0.3); }
+  .run-type-pill.selected[data-type="easy"]      { background: var(--easy);      color: #000; }
+  .run-type-pill.selected[data-type="long"]      { background: var(--long);      color: #000; }
+  .run-type-pill.selected[data-type="tempo"]     { background: var(--tempo);     color: #000; }
+  .run-type-pill.selected[data-type="intervals"] { background: var(--intervals); color: #000; }
+  .run-type-pill.selected[data-type="hills"]     { background: var(--hills);     color: #000; }
+
+  /* FORM CONTROLS */
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  input[type=text], input[type=number], select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus { border-color: var(--accent); }
+  select { cursor: pointer; }
+  option { background: var(--surface2); }
+
+  /* SEGMENTS */
+  .segments { display: flex; flex-direction: column; gap: 8px; }
+  .segment-row {
+    display: grid;
+    align-items: end;
+    gap: 8px;
+    background: var(--surface3);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .segment-row.hill-reps-row { border-color: var(--hills); }
+  .seg-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px;
+    transition: color 0.1s;
+  }
+  .seg-remove:hover { color: #ef4444; }
+
+  /* RUN BUILDER PANEL */
+  .run-builder {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .run-builder h3 { font-size: 14px; font-weight: 700; color: var(--text); }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+  /* SAVED RUNS */
+  .saved-run-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .saved-run-card:hover { border-color: var(--accent); }
+  .saved-run-name { font-size: 13px; font-weight: 600; }
+  .saved-run-meta { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .saved-run-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* CALENDAR */
+  .calendar { display: flex; flex-direction: column; gap: 0; }
+  .week-row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .week-row:last-child { border-bottom: none; }
+  .cal-header-row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .cal-day-header {
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    border-right: 1px solid var(--border);
+  }
+  .cal-day-header:last-child { border-right: none; }
+  .week-label {
+    padding: 12px 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    font-weight: 500;
+    border-right: 1px solid var(--border);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 1px;
+  }
+  .cal-cell {
+    border-right: 1px solid var(--border);
+    padding: 8px;
+    min-height: 100px;
+    position: relative;
+    transition: background 0.1s;
+  }
+  .cal-cell:last-child { border-right: none; }
+  .cal-cell.rest-day { background: rgba(0,0,0,0.2); }
+  .cal-cell-add {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    color: var(--text3);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .cal-cell-add:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* RUN CHIP */
+  .run-chip {
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    position: relative;
+    transition: opacity 0.15s;
+  }
+  .run-chip:hover { opacity: 0.85; }
+  .run-chip[data-type="easy"]      { background: rgba(74,222,128,0.2);  border-left: 3px solid var(--easy); }
+  .run-chip[data-type="long"]      { background: rgba(96,165,250,0.2);  border-left: 3px solid var(--long); }
+  .run-chip[data-type="tempo"]     { background: rgba(249,115,22,0.2);  border-left: 3px solid var(--tempo); }
+  .run-chip[data-type="intervals"] { background: rgba(167,139,250,0.2); border-left: 3px solid var(--intervals); }
+  .run-chip[data-type="hills"]     { background: rgba(251,113,133,0.2); border-left: 3px solid var(--hills); }
+  .run-chip-name { font-weight: 700; color: var(--text); }
+  .run-chip-dist { color: var(--text2); font-family: 'DM Mono', monospace; font-size: 10px; }
+  .run-chip-del {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.3);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+    line-height: 1;
+    display: none;
+  }
+  .run-chip:hover .run-chip-del { display: block; }
+  .run-chip-del:hover { color: #ef4444; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 18px; font-weight: 700; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.1s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  /* BATCH PICKER — weeks checkboxes */
+  .batch-weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 6px;
+  }
+  .week-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    transition: all 0.15s;
+    user-select: none;
+    font-family: 'DM Mono', monospace;
+  }
+  .week-toggle.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* batch days row */
+  .batch-days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .batch-select-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .batch-count-badge {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* INLINE ROW UTILS */
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row-between { display: flex; align-items: center; justify-content: space-between; }
+  .col { display: flex; flex-direction: column; gap: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  /* REST DAY LABEL */
+  .rest-label {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  /* WEEK STATS */
+  .week-stats {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val { font-size: 20px; font-weight: 700; color: var(--accent); font-family: 'DM Mono', monospace; }
+  .stat-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-sep { width: 1px; background: var(--border); align-self: stretch; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 20px;
+    color: var(--text3);
+    text-align: center;
+  }
+  .empty-icon { font-size: 48px; opacity: 0.3; }
+  .empty-text { font-size: 14px; }
+
+  /* PRINT STYLES */
+  @media print {
+    body { background: #fff; color: #000; }
+    .sidebar, header .header-actions, .cal-cell-add, .run-chip-del { display: none !important; }
+    .app { grid-template-columns: 1fr; }
+    .main { padding: 0; }
+    .week-stats { background: #f5f5f5; border-color: #ddd; }
+    .stat-val { color: #1a1a1a; }
+    .cal-day-header { color: #555; }
+    .run-chip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .week-row { page-break-inside: avoid; }
+    .cal-header-row { position: static; }
+    header { background: #fff; border-color: #ddd; }
+    .logo span { color: #333; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .tag-easy      { background: rgba(74,222,128,0.2);  color: var(--easy); }
+  .tag-long      { background: rgba(96,165,250,0.2);  color: var(--long); }
+  .tag-tempo     { background: rgba(249,115,22,0.2);  color: var(--tempo); }
+  .tag-intervals { background: rgba(167,139,250,0.2); color: var(--intervals); }
+  .tag-hills     { background: rgba(251,113,133,0.2); color: var(--hills); }
+
+  .no-saved { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; text-align: center; padding: 16px; }
+  .pace-hint { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::marker, details > summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PACE<span>FORGE</span></div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="window.print()">⬇ Download PDF</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- PLAN SETTINGS -->
+    <div class="section">
+      <div class="section-title">Plan Settings</div>
+
+      <div class="slider-wrap">
+        <div class="slider-label-row">
+          <span class="slider-label">Duration</span>
+          <span class="slider-val" id="weeks-val">8 <small>weeks</small></span>
+        </div>
+        <input type="range" min="1" max="12" value="8" id="weeks-slider" oninput="updateWeeks(this.value)">
+        <div class="row" style="justify-content:space-between;margin-top:2px">
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">1 WK</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">12 WK</span>
+        </div>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-label-row">
+          <span class="slider-label">Default Distance</span>
+          <span class="slider-val" id="dist-val">8 <small>km</small></span>
+        </div>
+        <input type="range" min="1" max="50" value="8" id="dist-slider" oninput="updateDist(this.value)">
+        <div class="row" style="justify-content:space-between;margin-top:2px">
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">1 KM</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">50 KM</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- RUN DAYS -->
+    <div class="section">
+      <div class="section-title">Training Days</div>
+      <div class="days-grid" id="days-grid"></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ADD RUN BUILDER -->
+    <div class="section">
+      <div class="section-title">Build a Run</div>
+
+      <div class="run-builder">
+        <div class="form-group">
+          <label class="form-label">Run Type</label>
+          <div class="run-types" id="type-pills">
+            <div class="run-type-pill selected" data-type="easy"      onclick="selectRunType('easy')">Easy</div>
+            <div class="run-type-pill"          data-type="long"      onclick="selectRunType('long')">Long</div>
+            <div class="run-type-pill"          data-type="tempo"     onclick="selectRunType('tempo')">Tempo</div>
+            <div class="run-type-pill"          data-type="intervals" onclick="selectRunType('intervals')">Intervals</div>
+            <div class="run-type-pill"          data-type="hills"     onclick="selectRunType('hills')">Hills</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Run Name (optional)</label>
+          <input type="text" id="run-name" placeholder="e.g. Morning Easy, 5K Tempo…">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Total Distance (km)</label>
+            <input type="number" id="run-dist" min="0.1" max="100" step="0.5" value="8">
+          </div>
+          <div id="run-notes-wrap" class="form-group">
+            <label class="form-label">Notes</label>
+            <input type="text" id="run-notes" placeholder="Optional notes">
+          </div>
+        </div>
+
+        <!-- TYPE-SPECIFIC OPTIONS -->
+        <div id="type-options"></div>
+
+        <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="saveRunType()">💾 Save as Template</button>
+          <button class="btn btn-primary btn-sm" onclick="openDayPicker()">＋ Add to Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- SAVED RUNS -->
+    <div class="section">
+      <div class="section-title">Saved Templates</div>
+      <div id="saved-runs-list">
+        <div class="no-saved">No saved templates yet</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CALENDAR -->
+  <main class="main">
+    <div id="plan-stats" class="week-stats" style="display:none"></div>
+    <div class="calendar" id="calendar"></div>
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🏃</div>
+      <div class="empty-text">Configure your plan on the left,<br>then add runs to your calendar.</div>
+    </div>
+  </main>
+
+</div>
+
+<!-- DAY PICKER MODAL (batch entry) -->
+<div class="modal-overlay" id="day-picker-modal" style="display:none" onclick="if(event.target===this)closeDayPicker()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Run to Plan</div>
+      <button class="modal-close" onclick="closeDayPicker()">✕</button>
+    </div>
+
+    <div id="day-picker-content"></div>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn btn-outline" onclick="closeDayPicker()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddRun()">Add Run</button>
+    </div>
+  </div>
+</div>
+
+<!-- RUN DETAIL MODAL -->
+<div class="modal-overlay" id="run-detail-modal" style="display:none" onclick="if(event.target===this)closeRunDetail()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="run-detail-title">Run Detail</div>
+      <button class="modal-close" onclick="closeRunDetail()">✕</button>
+    </div>
+    <div id="run-detail-content"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeRunDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────
+const state = {
+  weeks: 8,
+  defaultDist: 8,
+  trainingDays: [1, 3, 5, 6], // Mon=0 … Sun=6
+  currentType: 'easy',
+  savedTemplates: [],
+  plan: {},            // { 'w0d1': [runObj, …] }
+  pendingRun: null,
+  // batch selection state (used by modal)
+  pickerSelectedWeeks: new Set(),
+  pickerSelectedDays: new Set(),
+};
+
+const DAYS     = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+const DAY_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+// ─── UTILS ────────────────────────────────────────────
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function typeColor(type) {
+  return { easy:'#4ade80', long:'#60a5fa', tempo:'#f97316', intervals:'#a78bfa', hills:'#fb7185' }[type] || '#888';
+}
+
+function typeEmoji(type) {
+  return { easy:'🟢', long:'🔵', tempo:'🟠', intervals:'🟣', hills:'🔴' }[type] || '⚪';
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ─── PLAN SETTINGS ────────────────────────────────────
+function updateWeeks(v) {
+  state.weeks = +v;
+  document.getElementById('weeks-val').innerHTML = `${v} <small>weeks</small>`;
+  renderCalendar();
+}
+
+function updateDist(v) {
+  state.defaultDist = +v;
+  document.getElementById('dist-val').innerHTML = `${v} <small>km</small>`;
+  document.getElementById('run-dist').value = v;
+}
+
+// ─── DAYS GRID ────────────────────────────────────────
+function renderDaysGrid() {
+  const grid = document.getElementById('days-grid');
+  grid.innerHTML = DAYS.map((d, i) => `
+    <div class="day-toggle ${state.trainingDays.includes(i) ? 'active' : ''}"
+         onclick="toggleDay(${i})">${d}</div>
+  `).join('');
+}
+
+function toggleDay(i) {
+  const idx = state.trainingDays.indexOf(i);
+  if (idx >= 0) state.trainingDays.splice(idx, 1);
+  else state.trainingDays.push(i);
+  renderDaysGrid();
+  renderCalendar();
+}
+
+// ─── RUN TYPE SELECTION ───────────────────────────────
+function selectRunType(type) {
+  state.currentType = type;
+  document.querySelectorAll('.run-type-pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.type === type);
+  });
+  renderTypeOptions();
+}
+
+function renderTypeOptions() {
+  const el = document.getElementById('type-options');
+  const type = state.currentType;
+
+  if (type === 'easy') {
+    el.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Target Pace (min/km)</label>
+        <input type="text" id="easy-pace" placeholder="e.g. 5:30">
+        <div class="pace-hint">Format: M:SS per km</div>
+      </div>`;
+  } else if (type === 'long') {
+    el.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Long Run Sub-type</label>
+        <select id="long-subtype" onchange="renderLongOptions()">
+          <option value="easy">Easy Long Run</option>
+          <option value="intervals">Long Run with Intervals</option>
+        </select>
+      </div>
+      <div id="long-sub-options"></div>`;
+    renderLongOptions();
+  } else if (type === 'tempo') {
+    el.innerHTML = `
+      <div class="col">
+        <div class="row-between">
+          <label class="form-label" style="margin:0">Distance Segments</label>
+          <button class="btn btn-ghost btn-sm" onclick="addSegment('tempo-segs','tempo')">＋ Add Segment</button>
+        </div>
+        <div class="segments" id="tempo-segs"></div>
+        <div class="pace-hint">Segments split the total distance with different paces.</div>
+      </div>`;
+    addSegment('tempo-segs', 'tempo');
+  } else if (type === 'intervals') {
+    el.innerHTML = `
+      <div class="col">
+        <div class="row-between">
+          <label class="form-label" style="margin:0">Interval Segments</label>
+          <button class="btn btn-ghost btn-sm" onclick="addSegment('int-segs','intervals')">＋ Add Segment</button>
+        </div>
+        <div class="segments" id="int-segs"></div>
+      </div>`;
+    addSegment('int-segs', 'intervals');
+  } else if (type === 'hills') {
+    el.innerHTML = `
+      <div class="col">
+        <div class="row-between">
+          <label class="form-label" style="margin:0">Hill Segments</label>
+          <button class="btn btn-ghost btn-sm" onclick="addSegment('hill-segs','hills')">＋ Add Segment</button>
+        </div>
+        <div class="segments" id="hill-segs"></div>
+      </div>`;
+    addSegment('hill-segs', 'hills', true);
+  }
+}
+
+function renderLongOptions() {
+  const sub = document.getElementById('long-subtype')?.value;
+  const el  = document.getElementById('long-sub-options');
+  if (!el) return;
+  if (sub === 'easy') {
+    el.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Target Pace (min/km)</label>
+        <input type="text" id="long-pace" placeholder="e.g. 6:00">
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="col">
+        <div class="row-between">
+          <label class="form-label" style="margin:0">Interval Segments within Long Run</label>
+          <button class="btn btn-ghost btn-sm" onclick="addSegment('long-segs','long')">＋ Add Segment</button>
+        </div>
+        <div class="segments" id="long-segs"></div>
+      </div>`;
+    addSegment('long-segs', 'long');
+  }
+}
+
+function addSegment(containerId, type, isHills = false) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const segId = uid();
+  const div = document.createElement('div');
+  div.className = 'segment-row';
+  div.dataset.segId = segId;
+
+  let extraFields = '';
+  if (type === 'intervals' || type === 'long') {
+    extraFields = `
+      <div class="form-group">
+        <label class="form-label">Split by</label>
+        <select id="seg-split-${segId}">
+          <option value="">No split</option>
+          <option value="100m">100m</option>
+          <option value="200m">200m</option>
+          <option value="400m">400m</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reps</label>
+        <input type="number" id="seg-reps-${segId}" min="1" max="50" value="1" placeholder="1">
+      </div>`;
+  }
+
+  let hillExtra = '';
+  if (isHills) {
+    hillExtra = `
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Segment Type</label>
+        <select id="seg-hilltype-${segId}" onchange="onHillTypeChange('${segId}', this.value)">
+          <option value="normal">Normal</option>
+          <option value="hillreps">Hill Reps</option>
+        </select>
+      </div>
+      <div id="hill-reps-extra-${segId}" style="display:none;grid-column:1/-1">
+        <div class="form-group">
+          <label class="form-label">Number of Hill Reps</label>
+          <input type="number" id="seg-hillreps-${segId}" min="1" max="30" value="6" placeholder="6">
+        </div>
+      </div>`;
+  }
+
+  div.innerHTML = `
+    <button class="seg-remove" onclick="removeSegment(this)" title="Remove">✕</button>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;padding-right:16px">
+      <div class="form-group">
+        <label class="form-label">Distance (km)</label>
+        <input type="number" id="seg-dist-${segId}" min="0.1" step="0.1" value="3" placeholder="km">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pace (min/km)</label>
+        <input type="text" id="seg-pace-${segId}" placeholder="4:50">
+      </div>
+      ${extraFields}
+      ${hillExtra}
+    </div>`;
+  container.appendChild(div);
+}
+
+function onHillTypeChange(segId, val) {
+  const extra = document.getElementById(`hill-reps-extra-${segId}`);
+  const row = extra?.closest('.segment-row');
+  if (extra) extra.style.display = val === 'hillreps' ? 'block' : 'none';
+  if (row) row.classList.toggle('hill-reps-row', val === 'hillreps');
+}
+
+function removeSegment(btn) { btn.closest('.segment-row').remove(); }
+
+// ─── COLLECT RUN DATA ─────────────────────────────────
+function collectRunData() {
+  const type  = state.currentType;
+  const name  = document.getElementById('run-name').value.trim();
+  const dist  = parseFloat(document.getElementById('run-dist').value) || state.defaultDist;
+  const notes = document.getElementById('run-notes').value.trim();
+  const run   = { id: uid(), type, name: name || capitalize(type) + ' Run', dist, notes, details: {} };
+
+  if (type === 'easy') {
+    run.details.pace = document.getElementById('easy-pace')?.value || '';
+  } else if (type === 'long') {
+    const sub = document.getElementById('long-subtype')?.value || 'easy';
+    run.details.subtype = sub;
+    if (sub === 'easy') run.details.pace = document.getElementById('long-pace')?.value || '';
+    else run.details.segments = collectSegments('long-segs', 'intervals');
+  } else if (type === 'tempo') {
+    run.details.segments = collectSegments('tempo-segs', 'tempo');
+  } else if (type === 'intervals') {
+    run.details.segments = collectSegments('int-segs', 'intervals');
+  } else if (type === 'hills') {
+    run.details.segments = collectSegments('hill-segs', 'hills');
+  }
+  return run;
+}
+
+function collectSegments(containerId, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('.segment-row')).map(row => {
+    const segId = row.dataset.segId;
+    const seg = {
+      dist: parseFloat(document.getElementById(`seg-dist-${segId}`)?.value) || 0,
+      pace: document.getElementById(`seg-pace-${segId}`)?.value || '',
+    };
+    if (type === 'intervals' || type === 'long') {
+      seg.split = document.getElementById(`seg-split-${segId}`)?.value || '';
+      seg.reps  = parseInt(document.getElementById(`seg-reps-${segId}`)?.value) || 1;
+    }
+    if (type === 'hills') {
+      const ht = document.getElementById(`seg-hilltype-${segId}`)?.value || 'normal';
+      seg.hillType = ht;
+      if (ht === 'hillreps') seg.hillReps = parseInt(document.getElementById(`seg-hillreps-${segId}`)?.value) || 6;
+    }
+    return seg;
+  });
+}
+
+// ─── SAVE TEMPLATE ────────────────────────────────────
+function saveRunType() {
+  const run = { ...collectRunData(), id: uid() };
+  state.savedTemplates.push(run);
+  renderSavedTemplates();
+  showToast(`"${run.name}" saved as template`);
+}
+
+function renderSavedTemplates() {
+  const el = document.getElementById('saved-runs-list');
+  if (!state.savedTemplates.length) {
+    el.innerHTML = '<div class="no-saved">No saved templates yet</div>';
+    return;
+  }
+  el.innerHTML = state.savedTemplates.map(t => `
+    <div class="saved-run-card" style="margin-bottom:6px">
+      <div>
+        <div class="saved-run-name">${escHtml(t.name)}</div>
+        <div class="saved-run-meta">${t.dist}km · <span class="tag tag-${t.type}">${t.type.toUpperCase()}</span></div>
+      </div>
+      <div class="row" style="gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="useSavedTemplate('${t.id}')">Use</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteSavedTemplate('${t.id}')" style="color:#ef4444">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function useSavedTemplate(id) {
+  const tmpl = state.savedTemplates.find(t => t.id === id);
+  if (!tmpl) return;
+  selectRunType(tmpl.type);
+  document.getElementById('run-name').value  = tmpl.name;
+  document.getElementById('run-dist').value  = tmpl.dist;
+  document.getElementById('run-notes').value = tmpl.notes || '';
+  showToast(`Template "${tmpl.name}" loaded`);
+}
+
+function deleteSavedTemplate(id) {
+  state.savedTemplates = state.savedTemplates.filter(t => t.id !== id);
+  renderSavedTemplates();
+}
+
+// ─── BATCH DAY PICKER MODAL ───────────────────────────
+function openDayPicker() {
+  state.pendingRun = collectRunData();
+
+  // Default: all training days, week 1
+  state.pickerSelectedWeeks = new Set([0]);
+  state.pickerSelectedDays  = new Set(state.trainingDays.length ? [state.trainingDays[0]] : []);
+
+  renderDayPickerContent();
+  document.getElementById('day-picker-modal').style.display = 'flex';
+}
+
+function renderDayPickerContent() {
+  const run = state.pendingRun;
+  const el  = document.getElementById('day-picker-content');
+
+  // ── Run preview ──
+  let html = `
+    <div class="run-builder" style="background:var(--surface3);gap:10px">
+      <div class="row-between">
+        <div>
+          <div class="saved-run-name">${escHtml(run.name)}</div>
+          <div class="saved-run-meta">${run.dist}km · <span class="tag tag-${run.type}">${run.type.toUpperCase()}</span></div>
+        </div>
+        <div style="font-size:24px">${typeEmoji(run.type)}</div>
+      </div>
+    </div>`;
+
+  // ── Weeks section ──
+  html += `
+    <div class="col" style="gap:8px">
+      <div class="row-between">
+        <label class="form-label">Weeks <span class="batch-count-badge" id="week-count">${state.pickerSelectedWeeks.size} selected</span></label>
+        <div class="row" style="gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="selectAllWeeks()">All</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllWeeks()">None</button>
+        </div>
+      </div>
+      <div class="batch-weeks-grid" id="picker-weeks">
+        ${Array.from({ length: state.weeks }, (_, i) => `
+          <div class="week-toggle ${state.pickerSelectedWeeks.has(i) ? 'active' : ''}"
+               onclick="togglePickerWeek(${i})" data-week="${i}">W${i + 1}</div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  // ── Days section ──
+  html += `
+    <div class="col" style="gap:8px">
+      <div class="row-between">
+        <label class="form-label">Days <span class="batch-count-badge" id="day-count">${state.pickerSelectedDays.size} selected</span></label>
+        <div class="row" style="gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="selectTrainingDays()">Training days</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllDays()">None</button>
+        </div>
+      </div>
+      <div class="batch-days-row" id="picker-days">
+        ${DAYS.map((d, i) => `
+          <div class="day-toggle ${state.pickerSelectedDays.has(i) ? 'active' : ''}"
+               onclick="togglePickerDay(${i})" data-day="${i}">${d}</div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  // ── Placement count hint ──
+  const total = state.pickerSelectedWeeks.size * state.pickerSelectedDays.size;
+  html += `
+    <div id="placement-hint" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:right">
+      ${total > 0 ? `Will add <strong style="color:var(--accent)">${total}</strong> instance${total !== 1 ? 's' : ''}` : 'Select at least one week and one day'}
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function togglePickerWeek(i) {
+  if (state.pickerSelectedWeeks.has(i)) state.pickerSelectedWeeks.delete(i);
+  else state.pickerSelectedWeeks.add(i);
+  refreshPickerWeeks();
+  refreshPlacementHint();
+}
+
+function togglePickerDay(i) {
+  if (state.pickerSelectedDays.has(i)) state.pickerSelectedDays.delete(i);
+  else state.pickerSelectedDays.add(i);
+  refreshPickerDays();
+  refreshPlacementHint();
+}
+
+function selectAllWeeks() {
+  state.pickerSelectedWeeks = new Set(Array.from({ length: state.weeks }, (_, i) => i));
+  refreshPickerWeeks();
+  refreshPlacementHint();
+}
+function clearAllWeeks() {
+  state.pickerSelectedWeeks.clear();
+  refreshPickerWeeks();
+  refreshPlacementHint();
+}
+function selectTrainingDays() {
+  state.pickerSelectedDays = new Set(state.trainingDays);
+  refreshPickerDays();
+  refreshPlacementHint();
+}
+function clearAllDays() {
+  state.pickerSelectedDays.clear();
+  refreshPickerDays();
+  refreshPlacementHint();
+}
+
+function refreshPickerWeeks() {
+  document.querySelectorAll('#picker-weeks .week-toggle').forEach(el => {
+    const w = parseInt(el.dataset.week);
+    el.classList.toggle('active', state.pickerSelectedWeeks.has(w));
+  });
+  const countEl = document.getElementById('week-count');
+  if (countEl) countEl.textContent = `${state.pickerSelectedWeeks.size} selected`;
+}
+
+function refreshPickerDays() {
+  document.querySelectorAll('#picker-days .day-toggle').forEach(el => {
+    const d = parseInt(el.dataset.day);
+    el.classList.toggle('active', state.pickerSelectedDays.has(d));
+  });
+  const countEl = document.getElementById('day-count');
+  if (countEl) countEl.textContent = `${state.pickerSelectedDays.size} selected`;
+}
+
+function refreshPlacementHint() {
+  const total = state.pickerSelectedWeeks.size * state.pickerSelectedDays.size;
+  const hint  = document.getElementById('placement-hint');
+  if (hint) {
+    hint.innerHTML = total > 0
+      ? `Will add <strong style="color:var(--accent)">${total}</strong> instance${total !== 1 ? 's' : ''}`
+      : 'Select at least one week and one day';
+  }
+}
+
+function closeDayPicker() {
+  document.getElementById('day-picker-modal').style.display = 'none';
+}
+
+function confirmAddRun() {
+  if (!state.pickerSelectedWeeks.size || !state.pickerSelectedDays.size) {
+    showToast('Select at least one week and one day');
+    return;
+  }
+
+  let count = 0;
+  state.pickerSelectedWeeks.forEach(w => {
+    state.pickerSelectedDays.forEach(d => {
+      const key = `w${w}d${d}`;
+      if (!state.plan[key]) state.plan[key] = [];
+      state.plan[key].push({ ...state.pendingRun, id: uid() });
+      count++;
+    });
+  });
+
+  closeDayPicker();
+  renderCalendar();
+  showToast(`Added ${count} run${count !== 1 ? 's' : ''} to your plan`);
+}
+
+// ─── QUICK ADD from cell "+" button ───────────────────
+function quickAddToCell(week, day) {
+  state.pendingRun = collectRunData();
+  state.pickerSelectedWeeks = new Set([week]);
+  state.pickerSelectedDays  = new Set([day]);
+
+  renderDayPickerContent();
+  document.getElementById('day-picker-modal').style.display = 'flex';
+}
+
+// ─── CALENDAR ─────────────────────────────────────────
+function renderCalendar() {
+  const cal     = document.getElementById('calendar');
+  const empty   = document.getElementById('empty-state');
+  const statsEl = document.getElementById('plan-stats');
+
+  if (state.weeks === 0) { cal.innerHTML = ''; empty.style.display = 'flex'; statsEl.style.display = 'none'; return; }
+  empty.style.display = 'none';
+
+  let totalKm = 0, totalRuns = 0;
+  Object.values(state.plan).forEach(runs => runs.forEach(r => { totalKm += r.dist; totalRuns++; }));
+
+  if (totalRuns > 0) {
+    statsEl.style.display = 'flex';
+    statsEl.innerHTML = `
+      <div class="stat-item"><div class="stat-val">${state.weeks}</div><div class="stat-label">Weeks</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-val">${totalRuns}</div><div class="stat-label">Runs</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-val">${totalKm.toFixed(1)}</div><div class="stat-label">Total km</div></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-val">${(totalKm / state.weeks).toFixed(1)}</div><div class="stat-label">km/week avg</div></div>
+    `;
+  } else {
+    statsEl.style.display = 'none';
+  }
+
+  let html = `<div class="cal-header-row">
+    <div class="cal-day-header" style="writing-mode:initial"></div>
+    ${DAYS.map(d => `<div class="cal-day-header">${d}</div>`).join('')}
+  </div>`;
+
+  for (let w = 0; w < state.weeks; w++) {
+    let weekKm = 0;
+    const cells = DAYS.map((_, d) => {
+      const key  = `w${w}d${d}`;
+      const runs = state.plan[key] || [];
+      runs.forEach(r => weekKm += r.dist);
+      const isTraining = state.trainingDays.includes(d);
+      const chips = runs.map(r => `
+        <div class="run-chip" data-type="${r.type}" onclick="showRunDetail('${r.id}','${key}')">
+          <button class="run-chip-del" onclick="deleteRun(event,'${key}','${r.id}')">✕</button>
+          <div class="run-chip-name">${escHtml(r.name)}</div>
+          <div class="run-chip-dist">${r.dist}km</div>
+        </div>
+      `).join('');
+      return `
+        <div class="cal-cell ${isTraining ? '' : 'rest-day'}">
+          ${chips}
+          ${!isTraining && runs.length === 0 ? '<div class="rest-label">REST</div>' : ''}
+          <button class="cal-cell-add" onclick="quickAddToCell(${w},${d})" title="Add run">＋</button>
+        </div>`;
+    }).join('');
+
+    html += `<div class="week-row">
+      <div class="week-label">W${w + 1}${weekKm > 0 ? ` · ${weekKm.toFixed(0)}km` : ''}</div>
+      ${cells}
+    </div>`;
+  }
+
+  cal.innerHTML = html;
+}
+
+function deleteRun(e, key, runId) {
+  e.stopPropagation();
+  state.plan[key] = (state.plan[key] || []).filter(r => r.id !== runId);
+  renderCalendar();
+}
+
+// ─── RUN DETAIL ───────────────────────────────────────
+function showRunDetail(runId) {
+  let run = null;
+  Object.values(state.plan).forEach(arr => arr.forEach(r => { if (r.id === runId) run = r; }));
+  if (!run) return;
+
+  document.getElementById('run-detail-title').textContent = run.name;
+  const el = document.getElementById('run-detail-content');
+
+  let html = `<div class="col" style="gap:12px">
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <span class="tag tag-${run.type}">${run.type.toUpperCase()}</span>
+      <span style="font-size:13px;color:var(--text2);font-family:'DM Mono',monospace">${run.dist} km total</span>
+    </div>`;
+
+  if (run.notes) html += `<div style="font-size:13px;color:var(--text2)">${escHtml(run.notes)}</div>`;
+
+  if (run.type === 'easy' && run.details.pace)
+    html += detailRow('Target Pace', run.details.pace + ' /km');
+  else if (run.type === 'long') {
+    if (run.details.subtype === 'easy' && run.details.pace)
+      html += detailRow('Target Pace', run.details.pace + ' /km');
+    else html += segmentsHtml(run.details.segments, 'intervals');
+  } else if (run.type === 'tempo')
+    html += segmentsHtml(run.details.segments, 'tempo');
+  else if (run.type === 'intervals')
+    html += segmentsHtml(run.details.segments, 'intervals');
+  else if (run.type === 'hills')
+    html += segmentsHtml(run.details.segments, 'hills');
+
+  html += '</div>';
+  el.innerHTML = html;
+  document.getElementById('run-detail-modal').style.display = 'flex';
+}
+
+function detailRow(label, val) {
+  return `<div class="row-between" style="padding:8px 12px;background:var(--surface2);border-radius:6px">
+    <span style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px">${label}</span>
+    <span style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace">${val}</span>
+  </div>`;
+}
+
+function segmentsHtml(segs, type) {
+  if (!segs || !segs.length) return '';
+  let h = `<div class="col" style="gap:6px"><div class="form-label">Segments</div>`;
+  segs.forEach(s => {
+    let extra = '';
+    if (s.reps && s.reps > 1) extra += ` × ${s.reps} reps`;
+    if (s.split) extra += ` (split ${s.split})`;
+    if (s.hillType === 'hillreps') extra += ` — ${s.hillReps} hill reps`;
+    h += `<div style="padding:8px 12px;background:var(--surface2);border-radius:6px;border-left:3px solid ${typeColor(type)}">
+      <div style="display:flex;justify-content:space-between;font-size:13px">
+        <span style="font-family:'DM Mono',monospace;font-weight:600">${s.dist}km${s.pace ? ' @ ' + s.pace + '/km' : ''}</span>
+        <span style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace">${extra}</span>
+      </div>
+    </div>`;
+  });
+  return h + '</div>';
+}
+
+function closeRunDetail() {
+  document.getElementById('run-detail-modal').style.display = 'none';
+}
+
+// ─── INIT ─────────────────────────────────────────────
+renderDaysGrid();
+selectRunType('easy');
+renderCalendar();
+</script>
+</body>
+</html>
