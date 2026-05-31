@@ -215,8 +215,7 @@ return {allocations:allocations,unallocated:t.slice(idx)};
 }
 
 /* ===== Render ===== */
-var state={admin:false,authed:false,clicks:0,submitted:false,draw:null,_country:null,_copied:false,_copiedExport:false};
-if(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations){state.draw=RESULTS;}
+var state={admin:false,authed:false,clicks:0,submitted:false,draw:null,_country:null,_copied:false,_publishing:false,_publishOk:false,_publishErr:''};
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function getEntries(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return [];}}
@@ -344,7 +343,7 @@ inner+='<label class="lbl">Admin Code</label>'+
 }else{
 var per=Math.floor(TEAMS.length/Math.max(entries.length,1));
 inner+='<p style="font-style:italic;color:var(--ink-soft);margin-bottom:6px">'+entries.length+' enrolled on this device &middot; '+per+' nations each &middot; '+(entries.length?TEAMS.length%entries.length:TEAMS.length)+' unclaimed.</p>'+
-'<p style="font-size:14px;color:var(--faint);margin-bottom:14px">Names are stored per-browser. Gather everyone on one device, run the draw, then export &amp; commit to publish a shared gazette for all readers.</p>';
+'<p style="font-size:14px;color:var(--faint);margin-bottom:14px">Names are stored per-browser. Gather everyone on one device, run the draw, then publish it below — every reader\'s page updates automatically.</p>';
 entries.forEach(function(n){inner+='<div style="font-size:15px;border-bottom:1px dotted var(--hair);padding:4px 0">'+esc(n)+'</div>';});
 inner+='<button class="btn" style="margin-top:14px" onclick="adminDraw()" '+(entries.length?'':'disabled')+'>Conduct the Draw</button>';
 if(state.draw){
@@ -359,10 +358,13 @@ inner+='<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1
 });
 if(state.draw.unallocated&&state.draw.unallocated.length)
 inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>';
-inner+='<div class="section-rule"><span>Export for GitHub</span></div>'+
-'<p style="font-size:14px;color:var(--ink-soft);margin-bottom:8px">Paste this into <b>index.html</b>, replacing <code>var RESULTS = null;</code>, then commit. Every reader then sees this exact draw.</p>'+
-'<textarea class="input" readonly onclick="this.select()">var RESULTS = '+JSON.stringify(state.draw)+';</textarea>'+
-'<button class="btn" onclick="copyExport()">'+(state._copiedExport?"Copied ✓":"Copy Export Block")+'</button>';
+inner+='<div class="section-rule"><span>Publish to GitHub Pages</span></div>'+
+'<p style="font-size:14px;color:var(--ink-soft);margin-bottom:8px">Paste a GitHub personal access token with <b>Contents: Read &amp; write</b> for this repo. It is stored in your browser only — never committed.</p>'+
+'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)">'+
+'<button class="btn" onclick="publishDraw()" '+(state._publishing?'disabled':'')+'>'+
+(state._publishing?'Publishing&hellip;':'Publish Draw &mdash; Everyone Sees It')+'</button>'+
+(state._publishOk?'<p style="color:green;margin-top:10px;font-style:italic">&#10003; Published! The page updates for all visitors within about a minute.</p>':'')+
+(state._publishErr?'<p style="color:var(--accent);margin-top:10px;font-style:italic">Error: '+esc(state._publishErr)+'</p>':'');
 }
 inner+='<button class="btn line" style="margin-top:14px" onclick="wipe()">Clear Register on This Device</button>';
 }
@@ -385,7 +387,7 @@ function closeCountry(){state._country=null;renderModals();}
 function closeAdmin(){state.admin=false;renderModals();}
 function tryAuth(){var v=document.getElementById("acode").value;if(v===ADMIN_CODE){state.authed=true;renderModals();}else{alert("Wrong code");}}
 function adminDraw(){var r=runDraw();if(r){state.draw=r;renderModals();}}
-function wipe(){if(confirm("Clear all names stored on this device?")){setEntries([]);state.draw=(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations)?RESULTS:null;render();}}
+function wipe(){if(confirm("Clear all names stored on this device?")){setEntries([]);render();}}
 function copyAll(){
 if(!state.draw)return;
 var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+" "+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
@@ -393,7 +395,39 @@ if(state.draw.unallocated&&state.draw.unallocated.length)lines.push("UNCLAIMED\n
 copyText("WORLD CUP SWEEPSTAKES — ALLOCATIONS\n\n"+lines.join("\n\n"));
 state._copied=true;renderModals();setTimeout(function(){state._copied=false;renderModals();},2000);
 }
-function copyExport(){copyText('var RESULTS = '+JSON.stringify(state.draw)+';');state._copiedExport=true;renderModals();setTimeout(function(){state._copiedExport=false;renderModals();},2000);}
+function publishDraw(){
+if(!state.draw){alert('Run the draw first.');return;}
+var token=(document.getElementById('ghtoken')||{}).value||localStorage.getItem('wcsweep_gh_token')||'';
+token=token.trim();
+if(!token){alert('Paste your GitHub personal access token first.');return;}
+localStorage.setItem('wcsweep_gh_token',token);
+state._publishing=true;state._publishOk=false;state._publishErr='';
+renderModals();
+var host=location.hostname;
+var owner=host.indexOf('github.io')>=0?host.split('.')[0]:'barnandbee';
+var parts=location.pathname.replace(/\/$/,'').split('/').filter(Boolean);
+var repo=parts.length?parts[0]:'fellowship';
+var apiBase='https://api.github.com/repos/'+owner+'/'+repo;
+var content=JSON.stringify(state.draw,null,2);
+var b64=btoa(unescape(encodeURIComponent(content)));
+fetch(apiBase+'/contents/results.json',{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(existing){
+    var body={message:'publish draw',content:b64};
+    if(existing&&existing.sha)body.sha=existing.sha;
+    return fetch(apiBase+'/contents/results.json',{
+      method:'PUT',
+      headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+  })
+  .then(function(r){
+    state._publishing=false;
+    if(r&&r.ok){state._publishOk=true;renderModals();}
+    else{return (r?r.json():Promise.resolve({message:'Network error'})).then(function(e){state._publishErr=e.message||String(r?r.status:'error');renderModals();});}
+  })
+  .catch(function(e){state._publishing=false;state._publishErr=e.message;renderModals();});
+}
 function copyText(txt){
 if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(fb);}else fb();
 function fb(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta);}
@@ -462,7 +496,15 @@ function copyShare(){copyText(location.href);state._copiedShare=true;render();se
 /* ===== Router ===== */
 window.addEventListener("hashchange", render);
 
-render();
+/* ===== Boot: fetch results.json, fall back gracefully ===== */
+function initApp(){
+  if(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations){state.draw=RESULTS;render();return;}
+  fetch('results.json?_='+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){if(d&&d.allocations){state.draw=d;}render();})
+    .catch(function(){render();});
+}
+initApp();
 </script>
 </body>
 </html>
