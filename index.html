@@ -204,7 +204,7 @@ return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+
 
 /* ===== Draw logic ===== */
 function runDraw(){
-var players=getEntries();if(!players.length)return null;
+var players=state._pendingEntrants||[];if(!players.length)return null;
 var t=TEAMS.slice();
 for(var i=t.length-1;i>0;i--){var k=Math.floor(Math.random()*(i+1));var tmp=t[i];t[i]=t[k];t[k]=tmp;}
 var per=Math.floor(TEAMS.length/players.length);
@@ -215,7 +215,7 @@ return {allocations:allocations,unallocated:t.slice(idx)};
 }
 
 /* ===== Render ===== */
-var state={admin:false,authed:false,clicks:0,submitted:false,draw:null,_country:null,_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false};
+var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],_pendingEntrants:null,_country:null,_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:''};
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function getEntries(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return [];}}
@@ -244,7 +244,6 @@ var who=decodeURIComponent(hash.slice(4));
 renderProfile(who);
 return;
 }
-var entries=getEntries();
 var drawn=!!state.draw;
 var h='';
 
@@ -268,32 +267,25 @@ h+='<div class="section-rule"><span>Unclaimed</span></div>'+
 '<div class="teamlist" style="text-align:center;font-size:16px">'+state.draw.unallocated.map(teamInline).join(' &middot; ')+'</div>';
 }
 }else{
-h+='<div class="kicker">Subscriptions Now Open</div>';
-h+='<h1 class="headline">Enter the Grand Sweepstakes</h1>';
-h+='<div class="subhead">Lend us your name and the draw shall furnish you with nations entire.</div>';
-h+='<p class="byline">Forty-eight teams &middot; One glorious draw &middot; Bragging rights until the final whistle</p>';
-if(!state.submitted){
-h+='<div style="max-width:460px;margin:0 auto">'+
-'<label class="lbl">Your Name</label>'+
-'<input class="input" id="nameInput" placeholder="J. Doe, Esq." onkeydown="if(event.key===\'Enter\')enter()">'+
-'<div class="err" id="err"></div>'+
-'<button class="btn" onclick="enter()">Add My Name to the Register</button></div>';
+var ents=state.entrants;
+if(ents.length){
+h+='<div class="kicker">The Register &middot; '+ents.length+' in the Draw</div>';
+h+='<h1 class="headline">Who\'s In</h1>';
+h+='<div class="subhead">The draw will be conducted once all entries are confirmed. Check back here for your allocation.</div>';
+h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 4px">';
+ents.forEach(function(n){h+='<div style="border:1px solid var(--ink);padding:8px 18px;font-size:17px;font-weight:500">'+esc(n)+'</div>';});
+h+='</div>';
+h+='<p class="byline">Speak to the organiser to join &middot; Draw coming soon</p>';
 }else{
-h+='<div style="max-width:520px;margin:0 auto;text-align:center">'+
-'<p class="lead" style="text-align:center">You are duly enrolled. Your name rests upon this device\'s register; when the organiser conducts the draw and publishes this gazette, return here to read your fortune.</p>'+
-'<button class="btn line sm" style="margin-top:10px" onclick="state.submitted=false;render()">Enrol Another Name</button></div>';
-}
-if(entries.length){
-h+='<div class="section-rule"><span>Register &middot; This Device</span></div>';
-entries.forEach(function(n,i){
-h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dotted var(--hair);font-size:16px">'+
-'<span>'+esc(n)+'</span><button class="btn line sm" onclick="removeEntry('+i+')">Strike</button></div>';
-});
+h+='<div class="kicker">World Cup 2026 &middot; Sweepstakes</div>';
+h+='<h1 class="headline">The Draw Is Open</h1>';
+h+='<div class="subhead">Forty-eight nations await their subscribers. Speak to the organiser to enter your name.</div>';
+h+='<p class="byline">48 teams &middot; One draw &middot; Bragging rights until the final whistle</p>';
 }
 }
 
 h+='<div class="strip">'+
-'<div class="cell"><b>'+(drawn?state.draw.allocations.length:entries.length)+'</b><small>'+(drawn?"Subscribers":"Enrolled Here")+'</small></div>'+
+'<div class="cell"><b>'+(drawn?state.draw.allocations.length:state.entrants.length)+'</b><small>'+(drawn?"Subscribers":"In the Draw")+'</small></div>'+
 '<div class="cell"><b>'+TEAMS.length+'</b><small>Nations</small></div>'+
 '<div class="cell"><b>'+(drawn?"Sealed":"Open")+'</b><small>The Draw</small></div></div>';
 
@@ -341,14 +333,37 @@ inner+='<label class="lbl">Admin Code</label>'+
 '<input class="input" id="acode" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="if(event.key===\'Enter\')tryAuth()">'+
 '<button class="btn" onclick="tryAuth()">Unlock the Press</button>';
 }else{
-var per=Math.floor(TEAMS.length/Math.max(entries.length,1));
-inner+='<p style="font-style:italic;color:var(--ink-soft);margin-bottom:6px">'+entries.length+' enrolled on this device &middot; '+per+' nations each &middot; '+(entries.length?TEAMS.length%entries.length:TEAMS.length)+' unclaimed.</p>'+
-'<p style="font-size:14px;color:var(--faint);margin-bottom:14px">Names are stored per-browser. Gather everyone on one device, run the draw, then publish it below — every reader\'s page updates automatically.</p>';
-entries.forEach(function(n){inner+='<div style="font-size:15px;border-bottom:1px dotted var(--hair);padding:4px 0">'+esc(n)+'</div>';});
-inner+='<button class="btn" style="margin-top:14px" onclick="adminDraw()" '+(entries.length?'':'disabled')+'>Conduct the Draw</button>';
+var pend=state._pendingEntrants||[];
+var per=Math.floor(TEAMS.length/Math.max(pend.length,1));
+var unsaved=JSON.stringify(pend)!==JSON.stringify(state.entrants);
+/* --- GitHub token (shown once, shared by all API calls) --- */
+inner+='<label class="lbl">GitHub Token (Contents: Read &amp; write — stored in browser only)</label>'+
+'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)" style="margin-bottom:20px">';
+/* --- Entrant management --- */
+inner+='<div class="section-rule"><span>The Register</span></div>';
+inner+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
+'<input class="input" id="newEntrant" placeholder="Name" style="margin:0;flex:1" onkeydown="if(event.key===\'Enter\')addPending()">'+
+'<button class="btn sm" onclick="addPending()" style="width:auto;white-space:nowrap">Add</button></div>';
+if(pend.length){
+inner+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
+pend.forEach(function(n,i){
+inner+='<div style="display:flex;align-items:center;gap:4px;border:1px solid var(--ink);padding:4px 10px;font-size:15px">'+
+esc(n)+'<button onclick="removePending('+i+')" style="background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--faint);padding:0 0 0 6px">&times;</button></div>';
+});
+inner+='</div>';
+inner+='<p style="font-size:13px;color:var(--faint);margin-bottom:8px">'+pend.length+' in the draw &middot; '+per+' nations each &middot; '+(pend.length?TEAMS.length%pend.length:TEAMS.length)+' unclaimed'+(unsaved?' &middot; <strong>Unsaved changes</strong>':'')+'</p>';
+}else{
+inner+='<p style="font-size:14px;color:var(--faint);margin-bottom:8px">No entrants yet. Add names above.</p>';
+}
+inner+='<button class="btn" onclick="saveEntrants()" '+(state._savingEntrants?'disabled':'')+' style="margin-bottom:6px">'+
+(state._savingEntrants?'Saving&hellip;':'Save Register &mdash; Everyone Sees Who\'s In')+'</button>'+
+(state._saveEntrantsOk?'<p style="color:green;margin-bottom:8px;font-style:italic">&#10003; Saved! Visible to all within a minute.</p>':'')+
+(state._saveEntrantsErr?'<p style="color:var(--accent);margin-bottom:8px;font-style:italic">Error: '+esc(state._saveEntrantsErr)+'</p>':'');
+/* --- Draw --- */
+inner+='<div class="section-rule"><span>The Draw</span></div>';
+inner+='<button class="btn" onclick="adminDraw()" '+(pend.length?'':'disabled')+'>Conduct the Draw</button>';
 if(state.draw){
-inner+='<div class="section-rule"><span>Result</span></div>'+
-'<button class="btn line sm" style="margin-bottom:12px" onclick="copyAll()">'+(state._copied?"Copied ✓":"Copy as Text")+'</button>';
+inner+='<div style="margin-top:16px"><button class="btn line sm" style="margin-bottom:12px" onclick="copyAll()">'+(state._copied?"Copied ✓":"Copy Draw as Text")+'</button></div>';
 state.draw.allocations.forEach(function(a){
 inner+='<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">'+
 '<div style="width:54px;flex-shrink:0;border:1px solid var(--ink)">'+buildEmblem(a.teams,54)+'</div>'+
@@ -358,38 +373,34 @@ inner+='<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1
 });
 if(state.draw.unallocated&&state.draw.unallocated.length)
 inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>';
-inner+='<div class="section-rule"><span>Publish to GitHub Pages</span></div>'+
-'<p style="font-size:14px;color:var(--ink-soft);margin-bottom:8px">Paste a GitHub personal access token with <b>Contents: Read &amp; write</b> for this repo. It is stored in your browser only — never committed.</p>'+
-'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)">'+
-'<button class="btn" onclick="publishDraw()" '+(state._publishing?'disabled':'')+'>'+
+inner+='<button class="btn" onclick="publishDraw()" '+(state._publishing?'disabled':'')+'>'+
 (state._publishing?'Publishing&hellip;':'Publish Draw &mdash; Everyone Sees It')+'</button>'+
-(state._publishOk?'<p style="color:green;margin-top:10px;font-style:italic">&#10003; Published! The page updates for all visitors within about a minute.</p>':'')+
+(state._publishOk?'<p style="color:green;margin-top:10px;font-style:italic">&#10003; Published! Visible to all within a minute.</p>':'')+
 (state._publishErr?'<p style="color:var(--accent);margin-top:10px;font-style:italic">Error: '+esc(state._publishErr)+'</p>':'')+
 '<button class="btn line" style="margin-top:8px;border-color:var(--accent);color:var(--accent)" onclick="resetDraw()" '+(state._resetting?'disabled':'')+'>'+
 (state._resetting?'Resetting&hellip;':'Reset Draw &mdash; Return to Entry Mode')+'</button>';
 }
-inner+='<button class="btn line" style="margin-top:14px" onclick="wipe()">Clear Register on This Device</button>';
 }
 return '<div class="modal" onclick="if(event.target===this)closeAdmin()"><div class="box">'+inner+'</div></div>';
 }
 
 /* ===== Actions ===== */
-function enter(){
-var el=document.getElementById("nameInput"); var v=(el.value||"").trim();
-var e=document.getElementById("err");
-if(!v){e.textContent="Pray, enter your name.";return;}
-var arr=getEntries();
-if(arr.map(function(x){return x.toLowerCase();}).indexOf(v.toLowerCase())>=0){state.submitted=true;render();return;}
-arr.push(v);setEntries(arr);state.submitted=true;render();
-}
-function removeEntry(i){var a=getEntries();a.splice(i,1);setEntries(a);render();}
 function titleClick(){state.clicks++;if(state.clicks>=5){state.admin=true;state.clicks=0;render();}}
 function showCountry(name){state._country=name;renderModals();}
 function closeCountry(){state._country=null;renderModals();}
-function closeAdmin(){state.admin=false;renderModals();}
-function tryAuth(){var v=document.getElementById("acode").value;if(v===ADMIN_CODE){state.authed=true;renderModals();}else{alert("Wrong code");}}
+function closeAdmin(){state.admin=false;state._pendingEntrants=null;renderModals();}
+function tryAuth(){var v=document.getElementById("acode").value;if(v===ADMIN_CODE){state.authed=true;state._pendingEntrants=state.entrants.slice();renderModals();}else{alert("Wrong code");}}
 function adminDraw(){var r=runDraw();if(r){state.draw=r;renderModals();}}
-function wipe(){if(confirm("Clear all names stored on this device?")){setEntries([]);render();}}
+function addPending(){
+var el=document.getElementById('newEntrant');
+var name=(el?el.value||'':'').trim();
+if(!name)return;
+if((state._pendingEntrants||[]).map(function(n){return n.toLowerCase();}).indexOf(name.toLowerCase())>=0){el.value='';return;}
+state._pendingEntrants.push(name);
+el.value='';
+renderModals();
+}
+function removePending(i){state._pendingEntrants.splice(i,1);renderModals();}
 function copyAll(){
 if(!state.draw)return;
 var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+" "+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
@@ -404,7 +415,7 @@ function ghRepo(){
   var parts=location.pathname.replace(/\/$/,'').split('/').filter(Boolean);
   return {owner:owner,repo:parts.length?parts[0]:'fellowship'};
 }
-function writeResults(content,commitMsg,onStart,onDone,onErr){
+function commitFile(path,content,commitMsg,onStart,onDone,onErr){
   var token=ghToken();
   if(!token){alert('Paste your GitHub personal access token first.');return;}
   localStorage.setItem('wcsweep_gh_token',token);
@@ -412,12 +423,12 @@ function writeResults(content,commitMsg,onStart,onDone,onErr){
   var r=ghRepo();
   var apiBase='https://api.github.com/repos/'+r.owner+'/'+r.repo;
   var b64=btoa(unescape(encodeURIComponent(content)));
-  fetch(apiBase+'/contents/results.json',{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}})
+  fetch(apiBase+'/contents/'+path,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}})
     .then(function(res){return res.ok?res.json():null;})
     .then(function(existing){
       var body={message:commitMsg,content:b64};
       if(existing&&existing.sha)body.sha=existing.sha;
-      return fetch(apiBase+'/contents/results.json',{
+      return fetch(apiBase+'/contents/'+path,{
         method:'PUT',
         headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
         body:JSON.stringify(body)
@@ -428,6 +439,20 @@ function writeResults(content,commitMsg,onStart,onDone,onErr){
       else{return (res?res.json():Promise.resolve({message:'Network error'})).then(function(e){onErr(e.message||String(res?res.status:'error'));});}
     })
     .catch(function(e){onErr(e.message);});
+}
+function writeResults(content,commitMsg,onStart,onDone,onErr){
+  commitFile('results.json',content,commitMsg,onStart,onDone,onErr);
+}
+function saveEntrants(){
+  var list=(state._pendingEntrants||[]).slice();
+  commitFile(
+    'entrants.json',
+    JSON.stringify(list,null,2)+'\n',
+    'update entrants',
+    function(){state._savingEntrants=true;state._saveEntrantsOk=false;state._saveEntrantsErr='';renderModals();},
+    function(){state._savingEntrants=false;state._saveEntrantsOk=true;state.entrants=list;renderModals();},
+    function(msg){state._savingEntrants=false;state._saveEntrantsErr=msg;renderModals();}
+  );
 }
 function publishDraw(){
   if(!state.draw){alert('Run the draw first.');return;}
@@ -520,10 +545,16 @@ window.addEventListener("hashchange", render);
 /* ===== Boot: fetch results.json, fall back gracefully ===== */
 function initApp(){
   if(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations){state.draw=RESULTS;render();return;}
-  fetch('results.json?_='+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(d){if(d&&d.allocations){state.draw=d;}render();})
-    .catch(function(){render();});
+  var t=Date.now();
+  Promise.all([
+    fetch('results.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+    fetch('entrants.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+  ]).then(function(res){
+    var draw=res[0],ents=res[1];
+    if(draw&&draw.allocations)state.draw=draw;
+    if(Array.isArray(ents))state.entrants=ents;
+    render();
+  }).catch(function(){render();});
 }
 initApp();
 </script>
