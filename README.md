@@ -2,7 +2,7 @@
 
 A World Cup 2026 sweepstakes app — entirely client-side, no build step, no dependencies.
 
-**Live site:** https://barnandbee.github.io/fellowship/
+**Live site:** https://barnandbee.github.io/sweep/
 
 ## How it works
 
