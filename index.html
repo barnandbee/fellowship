@@ -160,18 +160,7 @@ var FIFA_RANK={"France":1,"Spain":2,"Argentina":3,"England":4,"Portugal":5,"Braz
 function meanRank(teams){if(!teams||!teams.length)return null;var s=0,n=0;for(var i=0;i<teams.length;i++){var r=FIFA_RANK[teams[i]];if(r){s+=r;n++;}}return n?(s/n):null;}
 var TEAMS=["Australia", "Iran", "Iraq", "Japan", "Jordan", "Qatar", "Saudi Arabia", "South Korea", "Uzbekistan", "Algeria", "Cape Verde", "DR Congo", "Egypt", "Ghana", "Ivory Coast", "Morocco", "Senegal", "South Africa", "Tunisia", "Canada", "Curaçao", "Haiti", "Mexico", "Panama", "United States", "Argentina", "Brazil", "Colombia", "Ecuador", "Paraguay", "Uruguay", "New Zealand", "Austria", "Belgium", "Bosnia and Herzegovina", "Croatia", "Czech Republic", "England", "France", "Germany", "Netherlands", "Norway", "Portugal", "Scotland", "Spain", "Sweden", "Switzerland", "Turkey"];
 
-/* ======================================================================
-RESULTS: the locked, shared draw.
-While this is null, the page is in ENTRY mode (each visitor enters their
-name locally). To publish a draw that EVERYONE sees identically across all
-browsers on GitHub Pages:
-1. Open the page, enter the entrants (or click the title 5x for admin).
-2. In the admin panel, click "Run Draw", then "Export for GitHub".
-3. Copy the generated block and PASTE IT BELOW, replacing `null`.
-4. Commit & push. The published page now shows that fixed draw to all.
-====================================================================== */
 var RESULTS = null;
-/* ====== END EDITABLE SECTION ====== */
 
 var ADMIN_CODE = "kickoff26"; // change before sharing
 var LS_KEY = "wcsweep_entries_v1";
@@ -228,16 +217,15 @@ var L=document.getElementById("dateL"); if(L)L.textContent=d.toLocaleDateString(
 }
 
 function teamEntry(name){
-return '<div class="entry" onclick="showCountry(\''+name.replace(/'/g,"\\'")+'\')">'
-+'<span class="fl">'+(FLAGS[name]||"")+'</span><span>'+esc(name)+'</span><span class="dots"></span></div>';
+return '<div class="entry" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'
++'<span class="fl">'+(FLAGS[name]||"")+"</span><span>"+esc(name)+"</span><span class=\"dots\"></span></div>";
 }
 function teamInline(name){
-return '<span class="tl" onclick="showCountry(\''+name.replace(/'/g,"\\'")+'\')">'+( FLAGS[name]||"")+" "+esc(name)+'</span>';
+return '<span class="tl" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'+( FLAGS[name]||"")+(" ")+esc(name)+"</span>";
 }
 
 function render(){
 var app=document.getElementById("app");
-// hash routing: #/u/<name> shows a profile page
 var hash=location.hash||"";
 if(hash.indexOf("#/u/")===0){
 var who=decodeURIComponent(hash.slice(4));
@@ -285,7 +273,7 @@ h+='<p class="byline">48 teams &middot; One draw &middot; Bragging rights until 
 }
 
 h+='<div class="strip">'+
-'<div class="cell"><b>'+(drawn?state.draw.allocations.length:state.entrants.length)+'</b><small>'+(drawn?"Subscribers":"In the Draw")+'</small></div>'+
+'<div class="cell"><b>'+(drawn?state.draw.allocations.length:state.entrants.length)+'</b><small>'+(drawn?"Subscribers":"In the Draw")+"</small></div>"+
 '<div class="cell"><b>'+TEAMS.length+'</b><small>Nations</small></div>'+
 '<div class="cell"><b>'+(drawn?"Sealed":"Open")+'</b><small>The Draw</small></div></div>';
 
@@ -314,7 +302,7 @@ function countryModalHTML(name){
 var d=COUNTRY_DATA[name]||{};
 return '<div class="modal" onclick="if(event.target===this)closeCountry()">'+
 '<div class="box"><button class="x" onclick="closeCountry()">&times;</button>'+
-'<div style="font-size:44px;line-height:1">'+(FLAGS[name]||"")+'</div>'+
+'<div style="font-size:44px;line-height:1">'+(FLAGS[name]||"")+"</div>"+
 '<div class="pill">From the Almanac</div>'+
 '<h2 style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:34px;margin:2px 0 10px">'+esc(name)+'</h2>'+
 '<div class="fact"><div class="ft">FIFA World Ranking</div><div class="fv">'+(FIFA_RANK[name]?("No. "+FIFA_RANK[name]+" in the world"):"&mdash;")+'</div></div>'+
@@ -324,7 +312,6 @@ return '<div class="modal" onclick="if(event.target===this)closeCountry()">'+
 '</div></div>';
 }
 function adminModalHTML(){
-var entries=getEntries();
 var inner='<button class="x" onclick="closeAdmin()">&times;</button>'+
 '<div class="pill">Editor\'s Desk</div>'+
 '<h2 style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:30px;margin:2px 0 14px">Organiser Control</h2>';
@@ -336,10 +323,8 @@ inner+='<label class="lbl">Admin Code</label>'+
 var pend=state._pendingEntrants||[];
 var per=Math.floor(TEAMS.length/Math.max(pend.length,1));
 var unsaved=JSON.stringify(pend)!==JSON.stringify(state.entrants);
-/* --- GitHub token (shown once, shared by all API calls) --- */
 inner+='<label class="lbl">GitHub Token (Contents: Read &amp; write — stored in browser only)</label>'+
-'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)" style="margin-bottom:20px">';
-/* --- Entrant management --- */
+'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+" onin put=\"localStorage.setItem('wcsweep_gh_token',this.value)\" style=\"margin-bottom:20px\">";
 inner+='<div class="section-rule"><span>The Register</span></div>';
 inner+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
 '<input class="input" id="newEntrant" placeholder="Name" style="margin:0;flex:1" onkeydown="if(event.key===\'Enter\')addPending()">'+
@@ -356,10 +341,9 @@ inner+='<p style="font-size:13px;color:var(--faint);margin-bottom:8px">'+pend.le
 inner+='<p style="font-size:14px;color:var(--faint);margin-bottom:8px">No entrants yet. Add names above.</p>';
 }
 inner+='<button class="btn" onclick="saveEntrants()" '+(state._savingEntrants?'disabled':'')+' style="margin-bottom:6px">'+
-(state._savingEntrants?'Saving&hellip;':'Save Register &mdash; Everyone Sees Who\'s In')+'</button>'+
+(state._savingEntrants?'Saving&hellip;':'Save Register — Everyone Sees Who\'s In')+'</button>'+
 (state._saveEntrantsOk?'<p style="color:green;margin-bottom:8px;font-style:italic">&#10003; Saved! Visible to all within a minute.</p>':'')+
 (state._saveEntrantsErr?'<p style="color:var(--accent);margin-bottom:8px;font-style:italic">Error: '+esc(state._saveEntrantsErr)+'</p>':'');
-/* --- Draw --- */
 inner+='<div class="section-rule"><span>The Draw</span></div>';
 inner+='<button class="btn" onclick="adminDraw()" '+(pend.length?'':'disabled')+'>Conduct the Draw</button>';
 if(state.draw){
@@ -368,17 +352,17 @@ state.draw.allocations.forEach(function(a){
 inner+='<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">'+
 '<div style="width:54px;flex-shrink:0;border:1px solid var(--ink)">'+buildEmblem(a.teams,54)+'</div>'+
 '<div style="flex:1;min-width:0"><strong>'+esc(a.name)+'</strong> <span style="font-size:12px;color:var(--faint)">&middot; mean rank '+(meanRank(a.teams)!=null?meanRank(a.teams).toFixed(1):"&mdash;")+'</span>'+
-'<div style="font-size:13px;color:var(--ink-soft);margin:2px 0">'+a.teams.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>'+
-'<button class="btn line sm" onclick="dlCrest('+JSON.stringify(a.name).replace(/"/g,"&quot;")+')">Download Crest</button></div></div>';
+'<div style="font-size:13px;color:var(--ink-soft);margin:2px 0">'+a.teams.map(function(t){return (FLAGS[t]||"")+(" ")+t;}).join(" &middot; ")+'</div>'+
+'<button class="btn line sm" onclick="dlCrest('+JSON.stringify(a.name).replace(/"/g,"&quot;")+")\">Download Crest</button></div></div>";
 });
 if(state.draw.unallocated&&state.draw.unallocated.length)
-inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>';
+inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+(" ")+t;}).join(" &middot; ")+'</div>';
 inner+='<button class="btn" onclick="publishDraw()" '+(state._publishing?'disabled':'')+'>'+
-(state._publishing?'Publishing&hellip;':'Publish Draw &mdash; Everyone Sees It')+'</button>'+
+(state._publishing?'Publishing&hellip;':'Publish Draw — Everyone Sees It')+'</button>'+
 (state._publishOk?'<p style="color:green;margin-top:10px;font-style:italic">&#10003; Published! Visible to all within a minute.</p>':'')+
 (state._publishErr?'<p style="color:var(--accent);margin-top:10px;font-style:italic">Error: '+esc(state._publishErr)+'</p>':'')+
 '<button class="btn line" style="margin-top:8px;border-color:var(--accent);color:var(--accent)" onclick="resetDraw()" '+(state._resetting?'disabled':'')+'>'+
-(state._resetting?'Resetting&hellip;':'Reset Draw &mdash; Return to Entry Mode')+'</button>';
+(state._resetting?'Resetting&hellip;':'Reset Draw — Return to Entry Mode')+'</button>';
 }
 }
 return '<div class="modal" onclick="if(event.target===this)closeAdmin()"><div class="box">'+inner+'</div></div>';
@@ -403,8 +387,8 @@ renderModals();
 function removePending(i){state._pendingEntrants.splice(i,1);renderModals();}
 function copyAll(){
 if(!state.draw)return;
-var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+" "+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
-if(state.draw.unallocated&&state.draw.unallocated.length)lines.push("UNCLAIMED\n"+state.draw.unallocated.map(function(t){return "  "+(FLAGS[t]||"")+" "+t;}).join("\n"));
+var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+(" ")+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
+if(state.draw.unallocated&&state.draw.unallocated.length)lines.push("UNCLAIMED\n"+state.draw.unallocated.map(function(t){return "  "+(FLAGS[t]||"")+(" ")+t;}).join("\n"));
 copyText("WORLD CUP SWEEPSTAKES — ALLOCATIONS\n\n"+lines.join("\n\n"));
 state._copied=true;renderModals();setTimeout(function(){state._copied=false;renderModals();},2000);
 }
@@ -413,7 +397,7 @@ function ghRepo(){
   var host=location.hostname;
   var owner=host.indexOf('github.io')>=0?host.split('.')[0]:'barnandbee';
   var parts=location.pathname.replace(/\/$/,'').split('/').filter(Boolean);
-  return {owner:owner,repo:parts.length?parts[0]:'fellowship'};
+  return {owner:owner,repo:parts.length?parts[0]:'sweep'};
 }
 function commitFile(path,content,commitMsg,onStart,onDone,onErr){
   var token=ghToken();
@@ -521,9 +505,9 @@ h+='<p class="byline">Highest-ranked: '+esc(best)+' ('+ordinal(FIFA_RANK[best]||
 h+='<div class="section-rule"><span>The Squad &middot; By World Ranking</span></div>';
 h+='<table class="standings"><thead><tr><th>FIFA</th><th>Nation</th><th></th></tr></thead><tbody>';
 sorted.forEach(function(t){
-h+='<tr onclick="showCountry(\''+t.replace(/'/g,"\\'")+'\')">'+
+h+='<tr onclick="showCountry(\'' +t.replace(/'/g,"\\'")+ '\')">'+
 '<td class="rk">'+(FIFA_RANK[t]||"&mdash;")+'</td>'+
-'<td><span class="fl">'+(FLAGS[t]||"")+'</span> '+esc(t)+'</td>'+
+'<td><span class="fl">'+(FLAGS[t]||"")+"</span> "+esc(t)+'</td>'+
 '<td class="more">view &rsaquo;</td></tr>';
 });
 h+='</tbody></table>';
@@ -542,7 +526,7 @@ function copyShare(){copyText(location.href);state._copiedShare=true;render();se
 /* ===== Router ===== */
 window.addEventListener("hashchange", render);
 
-/* ===== Boot: fetch results.json, fall back gracefully ===== */
+/* ===== Boot ===== */
 function initApp(){
   if(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations){state.draw=RESULTS;render();return;}
   var t=Date.now();
