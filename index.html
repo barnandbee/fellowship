@@ -143,7 +143,7 @@
 <div class="sheet">
   <div class="ear"><span>No. 26 &middot; Final Edition</span><span>Price: One Free Kick</span></div>
   <div class="masthead">
-    <div class="kicker">The Office Bulletin</div>
+    <div class="kicker">Friends &amp; Community</div>
     <div class="nameplate" onclick="titleClick()">The Sweepstakes <span class="amp">&amp;</span> Gazette</div>
     <div class="motto">&ldquo;All the Teams That Are Fit to Draw&rdquo; &middot; Established this season</div>
     <div class="dateline"><span id="dateL">&mdash;</span><span>World Cup Special</span><span id="dateR">Vol. I</span></div>
@@ -161,6 +161,91 @@ function meanRank(teams){if(!teams||!teams.length)return null;var s=0,n=0;for(va
 var TEAMS=["Australia", "Iran", "Iraq", "Japan", "Jordan", "Qatar", "Saudi Arabia", "South Korea", "Uzbekistan", "Algeria", "Cape Verde", "DR Congo", "Egypt", "Ghana", "Ivory Coast", "Morocco", "Senegal", "South Africa", "Tunisia", "Canada", "Curaçao", "Haiti", "Mexico", "Panama", "United States", "Argentina", "Brazil", "Colombia", "Ecuador", "Paraguay", "Uruguay", "New Zealand", "Austria", "Belgium", "Bosnia and Herzegovina", "Croatia", "Czech Republic", "England", "France", "Germany", "Netherlands", "Norway", "Portugal", "Scotland", "Spain", "Sweden", "Switzerland", "Turkey"];
 
 var RESULTS = null;
+
+/* ===== Tournament groups & fixtures ===== */
+var GROUPS_MEMBERS={"A":["Mexico","South Korea","Czech Republic","South Africa"],"B":["Canada","Bosnia and Herzegovina","Qatar","Switzerland"],"C":["Brazil","Morocco","Haiti","Scotland"],"D":["United States","Paraguay","Australia","Turkey"],"E":["Germany","Curaçao","Ivory Coast","Ecuador"],"F":["Netherlands","Japan","Sweden","Tunisia"],"G":["Belgium","Egypt","Iran","New Zealand"],"H":["Spain","Cape Verde","Saudi Arabia","Uruguay"],"I":["France","Senegal","Iraq","Norway"],"J":["Argentina","Algeria","Austria","Jordan"],"K":["Portugal","DR Congo","Uzbekistan","Colombia"],"L":["England","Croatia","Ghana","Panama"]};
+var GROUPS={};(function(){Object.keys(GROUPS_MEMBERS).forEach(function(g){GROUPS_MEMBERS[g].forEach(function(t){GROUPS[t]=g;});});})();
+var FIXTURES=[
+{d:"11 Jun",h:"Mexico",a:"South Africa",v:"Mexico City",g:"A"},
+{d:"11 Jun",h:"South Korea",a:"Czech Republic",v:"Guadalajara",g:"A"},
+{d:"18 Jun",h:"Mexico",a:"South Korea",v:"Guadalajara",g:"A"},
+{d:"18 Jun",h:"Czech Republic",a:"South Africa",v:"Atlanta",g:"A"},
+{d:"24 Jun",h:"Czech Republic",a:"Mexico",v:"Mexico City",g:"A"},
+{d:"24 Jun",h:"South Africa",a:"South Korea",v:"Monterrey",g:"A"},
+{d:"12 Jun",h:"Canada",a:"Bosnia and Herzegovina",v:"Toronto",g:"B"},
+{d:"13 Jun",h:"Qatar",a:"Switzerland",v:"San Francisco",g:"B"},
+{d:"18 Jun",h:"Canada",a:"Qatar",v:"Vancouver",g:"B"},
+{d:"18 Jun",h:"Switzerland",a:"Bosnia and Herzegovina",v:"Los Angeles",g:"B"},
+{d:"24 Jun",h:"Switzerland",a:"Canada",v:"Vancouver",g:"B"},
+{d:"24 Jun",h:"Bosnia and Herzegovina",a:"Qatar",v:"Seattle",g:"B"},
+{d:"13 Jun",h:"Brazil",a:"Morocco",v:"New York",g:"C"},
+{d:"13 Jun",h:"Haiti",a:"Scotland",v:"Boston",g:"C"},
+{d:"19 Jun",h:"Brazil",a:"Haiti",v:"Philadelphia",g:"C"},
+{d:"19 Jun",h:"Scotland",a:"Morocco",v:"Boston",g:"C"},
+{d:"24 Jun",h:"Morocco",a:"Haiti",v:"Atlanta",g:"C"},
+{d:"24 Jun",h:"Scotland",a:"Brazil",v:"Miami",g:"C"},
+{d:"12 Jun",h:"United States",a:"Paraguay",v:"Los Angeles",g:"D"},
+{d:"13 Jun",h:"Australia",a:"Turkey",v:"Vancouver",g:"D"},
+{d:"19 Jun",h:"United States",a:"Australia",v:"Seattle",g:"D"},
+{d:"19 Jun",h:"Turkey",a:"Paraguay",v:"San Francisco",g:"D"},
+{d:"25 Jun",h:"Turkey",a:"United States",v:"Los Angeles",g:"D"},
+{d:"25 Jun",h:"Paraguay",a:"Australia",v:"San Francisco",g:"D"},
+{d:"14 Jun",h:"Germany",a:"Curaçao",v:"Houston",g:"E"},
+{d:"14 Jun",h:"Ivory Coast",a:"Ecuador",v:"Philadelphia",g:"E"},
+{d:"20 Jun",h:"Germany",a:"Ivory Coast",v:"Toronto",g:"E"},
+{d:"20 Jun",h:"Ecuador",a:"Curaçao",v:"Kansas City",g:"E"},
+{d:"25 Jun",h:"Curaçao",a:"Ivory Coast",v:"Philadelphia",g:"E"},
+{d:"25 Jun",h:"Ecuador",a:"Germany",v:"New York",g:"E"},
+{d:"14 Jun",h:"Netherlands",a:"Japan",v:"Dallas",g:"F"},
+{d:"14 Jun",h:"Sweden",a:"Tunisia",v:"Monterrey",g:"F"},
+{d:"20 Jun",h:"Netherlands",a:"Sweden",v:"Houston",g:"F"},
+{d:"20 Jun",h:"Tunisia",a:"Japan",v:"Monterrey",g:"F"},
+{d:"25 Jun",h:"Japan",a:"Sweden",v:"Dallas",g:"F"},
+{d:"25 Jun",h:"Tunisia",a:"Netherlands",v:"Kansas City",g:"F"},
+{d:"15 Jun",h:"Belgium",a:"Egypt",v:"Seattle",g:"G"},
+{d:"15 Jun",h:"Iran",a:"New Zealand",v:"Los Angeles",g:"G"},
+{d:"21 Jun",h:"Belgium",a:"Iran",v:"Los Angeles",g:"G"},
+{d:"21 Jun",h:"New Zealand",a:"Egypt",v:"Vancouver",g:"G"},
+{d:"26 Jun",h:"Egypt",a:"Iran",v:"Seattle",g:"G"},
+{d:"26 Jun",h:"New Zealand",a:"Belgium",v:"Vancouver",g:"G"},
+{d:"15 Jun",h:"Spain",a:"Cape Verde",v:"Atlanta",g:"H"},
+{d:"15 Jun",h:"Saudi Arabia",a:"Uruguay",v:"Miami",g:"H"},
+{d:"21 Jun",h:"Spain",a:"Saudi Arabia",v:"Atlanta",g:"H"},
+{d:"21 Jun",h:"Uruguay",a:"Cape Verde",v:"Miami",g:"H"},
+{d:"26 Jun",h:"Cape Verde",a:"Saudi Arabia",v:"Houston",g:"H"},
+{d:"26 Jun",h:"Uruguay",a:"Spain",v:"Guadalajara",g:"H"},
+{d:"16 Jun",h:"France",a:"Senegal",v:"New York",g:"I"},
+{d:"16 Jun",h:"Iraq",a:"Norway",v:"Boston",g:"I"},
+{d:"22 Jun",h:"France",a:"Iraq",v:"Philadelphia",g:"I"},
+{d:"22 Jun",h:"Norway",a:"Senegal",v:"New York",g:"I"},
+{d:"26 Jun",h:"Norway",a:"France",v:"Boston",g:"I"},
+{d:"26 Jun",h:"Senegal",a:"Iraq",v:"Toronto",g:"I"},
+{d:"16 Jun",h:"Argentina",a:"Algeria",v:"Kansas City",g:"J"},
+{d:"16 Jun",h:"Austria",a:"Jordan",v:"San Francisco",g:"J"},
+{d:"22 Jun",h:"Argentina",a:"Austria",v:"Dallas",g:"J"},
+{d:"22 Jun",h:"Jordan",a:"Algeria",v:"San Francisco",g:"J"},
+{d:"27 Jun",h:"Algeria",a:"Austria",v:"Kansas City",g:"J"},
+{d:"27 Jun",h:"Jordan",a:"Argentina",v:"Dallas",g:"J"},
+{d:"17 Jun",h:"Portugal",a:"DR Congo",v:"Houston",g:"K"},
+{d:"17 Jun",h:"Uzbekistan",a:"Colombia",v:"Mexico City",g:"K"},
+{d:"23 Jun",h:"Portugal",a:"Uzbekistan",v:"Houston",g:"K"},
+{d:"23 Jun",h:"Colombia",a:"DR Congo",v:"Guadalajara",g:"K"},
+{d:"27 Jun",h:"Colombia",a:"Portugal",v:"Miami",g:"K"},
+{d:"27 Jun",h:"DR Congo",a:"Uzbekistan",v:"Atlanta",g:"K"},
+{d:"17 Jun",h:"England",a:"Croatia",v:"Dallas",g:"L"},
+{d:"17 Jun",h:"Ghana",a:"Panama",v:"Toronto",g:"L"},
+{d:"23 Jun",h:"England",a:"Ghana",v:"Boston",g:"L"},
+{d:"23 Jun",h:"Panama",a:"Croatia",v:"Toronto",g:"L"},
+{d:"27 Jun",h:"Panama",a:"England",v:"New York",g:"L"},
+{d:"27 Jun",h:"Croatia",a:"Ghana",v:"Philadelphia",g:"L"},
+{d:"28 Jun–3 Jul",label:"Round of 32",round:"R32",note:"Top 2 per group + 8 best 3rd-place · 16 matches"},
+{d:"4–7 Jul",label:"Round of 16",round:"R16",note:"8 matches"},
+{d:"9–11 Jul",label:"Quarter-Finals",round:"QF",note:"4 matches"},
+{d:"14 Jul",label:"Semi-Final 1",v:"Dallas",round:"SF"},
+{d:"15 Jul",label:"Semi-Final 2",v:"Atlanta",round:"SF"},
+{d:"18 Jul",label:"Third-Place Play-off",v:"Miami",round:"3P"},
+{d:"19 Jul",label:"Final",v:"New York",round:"F"}
+];
 
 var ADMIN_CODE = "kickoff26"; // change before sharing
 var LS_KEY = "wcsweep_entries_v1";
@@ -181,7 +266,7 @@ var c=size/2,rings=3+(seed%3),sides=3+(seed%6),nodes=teams.length,parts=[];
 parts.push('<rect x="0" y="0" width="'+size+'" height="'+size+'" rx="20" fill="'+dark+'"/>');
 parts.push('<rect x="0" y="0" width="'+size+'" height="'+size+'" rx="20" fill="url(#g'+(seed%1000)+')" opacity="0.5"/>');
 for(var i=rings;i>=1;i--){var r=(i/rings)*(size*0.42),rot=rnd()*Math.PI,op=0.12+(i/rings)*0.4,col=i%2===0?accent:accent2;
-parts.push('<path d="'+poly(c,c,r,sides,rot,0.12,rnd)+'" fill="none" stroke="'+col+'" stroke-width="'+(0.6+rnd()*1.6).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>');}
+parts.push('<path d="'+poly(c,c,r,sides,rot,0.12,rnd)+'" fill="none" stroke="'+col+'" stroke-width="'+(0.6+rnd()*1.6).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>');}  
 var orbit=size*0.34;
 for(var j=0;j<nodes;j++){var a=(j/nodes)*Math.PI*2+seed,x=c+Math.cos(a)*orbit,y=c+Math.sin(a)*orbit,rad=1.6+rnd()*2.6;
 parts.push('<line x1="'+c+'" y1="'+c+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="'+accent+'" stroke-width="0.5" opacity="0.25"/>');
@@ -189,7 +274,7 @@ parts.push('<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed
 parts.push('<path d="'+poly(c,c,size*0.12,sides,rnd()*6,0.05,rnd)+'" fill="'+spark+'" opacity="0.9"/>');
 parts.push('<circle cx="'+c+'" cy="'+c+'" r="'+(size*0.05).toFixed(1)+'" fill="'+dark+'"/>');
 var grad='<radialGradient id="g'+(seed%1000)+'" cx="50%" cy="40%" r="70%"><stop offset="0%" stop-color="'+accent2+'" stop-opacity="0.35"/><stop offset="100%" stop-color="'+dark+'" stop-opacity="0"/></radialGradient>';
-return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><defs>'+grad+'</defs>'+parts.join("")+'</svg>';}
+return '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><defs>'+grad+'</defs>'+parts.join("")+"</svg>";}
 
 /* ===== Draw logic ===== */
 function runDraw(){
@@ -204,7 +289,7 @@ return {allocations:allocations,unallocated:t.slice(idx)};
 }
 
 /* ===== Render ===== */
-var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],_pendingEntrants:null,_country:null,_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:''};
+var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],_pendingEntrants:null,_country:null,_countryTab:'almanac',_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:''};
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function getEntries(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return [];}}
@@ -217,16 +302,17 @@ var L=document.getElementById("dateL"); if(L)L.textContent=d.toLocaleDateString(
 }
 
 function teamEntry(name){
-return '<div class="entry" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'
+return '<div class="entry" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'  
 +'<span class="fl">'+(FLAGS[name]||"")+"</span><span>"+esc(name)+"</span><span class=\"dots\"></span></div>";
 }
 function teamInline(name){
-return '<span class="tl" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'+( FLAGS[name]||"")+(" ")+esc(name)+"</span>";
+return '<span class="tl" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'+( FLAGS[name]||"")+" "+esc(name)+"</span>";
 }
 
 function render(){
 var app=document.getElementById("app");
 var hash=location.hash||"";
+if(hash.indexOf("#/schedule")===0){renderSchedule();return;}
 if(hash.indexOf("#/u/")===0){
 var who=decodeURIComponent(hash.slice(4));
 renderProfile(who);
@@ -280,8 +366,9 @@ h+='<div class="strip">'+
 h+='<div class="section-rule"><span>The Nations &middot; An Almanac</span></div>';
 h+='<p class="byline">Tap any nation below for its beast, its balladeer, and a book</p>';
 h+='<div class="index">'+TEAMS.map(teamEntry).join('')+'</div>';
+h+='<div style="text-align:center;margin:22px 0 0"><a class="btn line sm" href="#/schedule">Full Match Schedule &rarr;</a></div>';
 
-h+='<div class="foot">The Sweepstakes &amp; Gazette &middot; Printed on this device for the amusement of colleagues.<br>'+
+h+='<div class="foot">The Sweepstakes &amp; Gazette &middot; Made for friends &amp; community.<br>'+
 'Almanac notes are light trivia; &ldquo;iconic balladeer&rdquo; denotes a celebrated act, not an audited sales ledger.</div>';
 
 app.innerHTML=h;
@@ -300,15 +387,46 @@ m.innerHTML=out;
 }
 function countryModalHTML(name){
 var d=COUNTRY_DATA[name]||{};
+var tab=state._countryTab||'almanac';
+var grp=GROUPS[name]||'';
+var tabBtn=function(id,label){
+  var active=tab===id;
+  return '<button onclick="setCountryTab(\''+id+'\')" style="flex:1;padding:9px 0;font-family:\'Roboto\',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:700;cursor:pointer;border:none;border-bottom:3px solid '+(active?'var(--accent)':'transparent')+';background:transparent;color:'+(active?'var(--accent)':'var(--ink-soft)')+'">'+label+'</button>';
+};
+var tabBar='<div style="display:flex;border-bottom:1px solid var(--hair);margin:10px 0 0">'+tabBtn('almanac','Almanac')+tabBtn('fixtures','Fixtures')+'</div>';
+var content='';
+if(tab==='almanac'){
+content='<div class="fact"><div class="ft">FIFA World Ranking</div><div class="fv">'+(FIFA_RANK[name]?("No. "+FIFA_RANK[name]+" in the world"):"&mdash;")+'</div></div>'+
+'<div class="fact"><div class="ft">National Animal</div><div class="fv">'+esc(d.animal||"&mdash;")+'</div></div>'+
+'<div class="fact"><div class="ft">Iconic Recording Artist</div><div class="fv">'+esc(d.artist||"&mdash;")+'</div></div>'+
+'<div class="fact"><div class="ft">A Novel from These Shores</div><div class="fv">'+esc(d.novel||"&mdash;")+'</div></div>';
+}else{
+var members=GROUPS_MEMBERS[grp]||[];
+content+='<div class="fact"><div class="ft">Group '+grp+'</div><div class="fv" style="font-size:15px;line-height:1.7">';
+content+=members.map(function(t){return '<span style="'+(t===name?'font-weight:700':'')+'">'+esc((FLAGS[t]||'')+' '+t)+'</span>';}).join(' &middot; ');
+content+='</div></div>';
+var matches=FIXTURES.filter(function(f){return f.h===name||f.a===name;});
+if(matches.length){
+matches.forEach(function(f){
+var isHome=f.h===name;
+var opp=isHome?f.a:f.h;
+content+='<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dotted var(--hair)">'+
+'<span style="font-size:12px;color:var(--faint);min-width:54px;flex-shrink:0">'+esc(f.d)+'</span>'+
+'<span style="flex:1;font-size:15px">'+(FLAGS[opp]||'')+' <strong>'+esc(opp)+'</strong></span>'+
+'<span style="font-size:10px;color:var(--ink-soft);flex-shrink:0;text-align:right">'+esc(f.v||'')+'</span>'+
+'<span style="font-size:10px;border:1px solid var(--hair);padding:2px 5px;color:var(--faint);flex-shrink:0;margin-left:4px">'+(isHome?'H':'A')+'</span>'+
+'</div>';
+});
+}else{
+content+='<p style="color:var(--faint);font-style:italic;margin-top:12px">Fixtures not yet scheduled.</p>';
+}
+}
 return '<div class="modal" onclick="if(event.target===this)closeCountry()">'+
 '<div class="box"><button class="x" onclick="closeCountry()">&times;</button>'+
 '<div style="font-size:44px;line-height:1">'+(FLAGS[name]||"")+"</div>"+
-'<div class="pill">From the Almanac</div>'+
-'<h2 style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:34px;margin:2px 0 10px">'+esc(name)+'</h2>'+
-'<div class="fact"><div class="ft">FIFA World Ranking</div><div class="fv">'+(FIFA_RANK[name]?("No. "+FIFA_RANK[name]+" in the world"):"&mdash;")+'</div></div>'+
-'<div class="fact"><div class="ft">National Animal</div><div class="fv">'+esc(d.animal||"&mdash;")+'</div></div>'+
-'<div class="fact"><div class="ft">Iconic Recording Artist</div><div class="fv">'+esc(d.artist||"&mdash;")+'</div></div>'+
-'<div class="fact"><div class="ft">A Novel from These Shores</div><div class="fv">'+esc(d.novel||"&mdash;")+'</div></div>'+
+'<div class="pill">'+(grp?'Group '+grp+' &middot; ':'')+'World Cup 2026</div>'+
+'<h2 style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:34px;margin:2px 0 2px">'+esc(name)+'</h2>'+
+tabBar+content+
 '</div></div>';
 }
 function adminModalHTML(){
@@ -324,7 +442,7 @@ var pend=state._pendingEntrants||[];
 var per=Math.floor(TEAMS.length/Math.max(pend.length,1));
 var unsaved=JSON.stringify(pend)!==JSON.stringify(state.entrants);
 inner+='<label class="lbl">GitHub Token (Contents: Read &amp; write — stored in browser only)</label>'+
-'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+" onin put=\"localStorage.setItem('wcsweep_gh_token',this.value)\" style=\"margin-bottom:20px\">";
+'<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)" style="margin-bottom:20px">';
 inner+='<div class="section-rule"><span>The Register</span></div>';
 inner+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
 '<input class="input" id="newEntrant" placeholder="Name" style="margin:0;flex:1" onkeydown="if(event.key===\'Enter\')addPending()">'+
@@ -352,11 +470,11 @@ state.draw.allocations.forEach(function(a){
 inner+='<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">'+
 '<div style="width:54px;flex-shrink:0;border:1px solid var(--ink)">'+buildEmblem(a.teams,54)+'</div>'+
 '<div style="flex:1;min-width:0"><strong>'+esc(a.name)+'</strong> <span style="font-size:12px;color:var(--faint)">&middot; mean rank '+(meanRank(a.teams)!=null?meanRank(a.teams).toFixed(1):"&mdash;")+'</span>'+
-'<div style="font-size:13px;color:var(--ink-soft);margin:2px 0">'+a.teams.map(function(t){return (FLAGS[t]||"")+(" ")+t;}).join(" &middot; ")+'</div>'+
+'<div style="font-size:13px;color:var(--ink-soft);margin:2px 0">'+a.teams.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>'+
 '<button class="btn line sm" onclick="dlCrest('+JSON.stringify(a.name).replace(/"/g,"&quot;")+")\">Download Crest</button></div></div>";
 });
 if(state.draw.unallocated&&state.draw.unallocated.length)
-inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+(" ")+t;}).join(" &middot; ")+'</div>';
+inner+='<div style="color:var(--accent);font-size:14px;margin-bottom:12px"><strong>Unclaimed:</strong> '+state.draw.unallocated.map(function(t){return (FLAGS[t]||"")+" "+t;}).join(" &middot; ")+'</div>';
 inner+='<button class="btn" onclick="publishDraw()" '+(state._publishing?'disabled':'')+'>'+
 (state._publishing?'Publishing&hellip;':'Publish Draw — Everyone Sees It')+'</button>'+
 (state._publishOk?'<p style="color:green;margin-top:10px;font-style:italic">&#10003; Published! Visible to all within a minute.</p>':'')+
@@ -370,8 +488,9 @@ return '<div class="modal" onclick="if(event.target===this)closeAdmin()"><div cl
 
 /* ===== Actions ===== */
 function titleClick(){state.clicks++;if(state.clicks>=5){state.admin=true;state.clicks=0;render();}}
-function showCountry(name){state._country=name;renderModals();}
+function showCountry(name){state._country=name;state._countryTab='almanac';renderModals();}
 function closeCountry(){state._country=null;renderModals();}
+function setCountryTab(tab){state._countryTab=tab;renderModals();}
 function closeAdmin(){state.admin=false;state._pendingEntrants=null;renderModals();}
 function tryAuth(){var v=document.getElementById("acode").value;if(v===ADMIN_CODE){state.authed=true;state._pendingEntrants=state.entrants.slice();renderModals();}else{alert("Wrong code");}}
 function adminDraw(){var r=runDraw();if(r){state.draw=r;renderModals();}}
@@ -387,8 +506,8 @@ renderModals();
 function removePending(i){state._pendingEntrants.splice(i,1);renderModals();}
 function copyAll(){
 if(!state.draw)return;
-var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+(" ")+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
-if(state.draw.unallocated&&state.draw.unallocated.length)lines.push("UNCLAIMED\n"+state.draw.unallocated.map(function(t){return "  "+(FLAGS[t]||"")+(" ")+t;}).join("\n"));
+var lines=state.draw.allocations.map(function(a){var mr=meanRank(a.teams);return a.name+(mr!=null?(" — mean FIFA rank "+mr.toFixed(1)):"")+"\n"+a.teams.map(function(t){return "  "+(FLAGS[t]||"")+" "+t+(FIFA_RANK[t]?(" (#"+FIFA_RANK[t]+")"):"");}).join("\n");});
+if(state.draw.unallocated&&state.draw.unallocated.length)lines.push("UNCLAIMED\n"+state.draw.unallocated.map(function(t){return "  "+(FLAGS[t]||"")+" "+t;}).join("\n"));
 copyText("WORLD CUP SWEEPSTAKES — ALLOCATIONS\n\n"+lines.join("\n\n"));
 state._copied=true;renderModals();setTimeout(function(){state._copied=false;renderModals();},2000);
 }
@@ -505,10 +624,7 @@ h+='<p class="byline">Highest-ranked: '+esc(best)+' ('+ordinal(FIFA_RANK[best]||
 h+='<div class="section-rule"><span>The Squad &middot; By World Ranking</span></div>';
 h+='<table class="standings"><thead><tr><th>FIFA</th><th>Nation</th><th></th></tr></thead><tbody>';
 sorted.forEach(function(t){
-h+='<tr onclick="showCountry(\'' +t.replace(/'/g,"\\'")+ '\')">'+
-'<td class="rk">'+(FIFA_RANK[t]||"&mdash;")+'</td>'+
-'<td><span class="fl">'+(FLAGS[t]||"")+"</span> "+esc(t)+'</td>'+
-'<td class="more">view &rsaquo;</td></tr>';
+h+='<tr onclick="showCountry(\'' +t.replace(/'/g,"\\'")+ '\')">'+'<td class="rk">'+(FIFA_RANK[t]||"&mdash;")+'</td>'+'<td><span class="fl">'+(FLAGS[t]||"")+"</span> "+esc(t)+'</td>'+'<td class="more">view &rsaquo;</td></tr>';
 });
 h+='</tbody></table>';
 h+='<p class="byline" style="margin-top:10px">Tap any nation for its ranking, national animal, iconic artist, and a novel.</p>';
@@ -522,6 +638,48 @@ setDateline();
 renderModals();
 }
 function copyShare(){copyText(location.href);state._copiedShare=true;render();setTimeout(function(){state._copiedShare=false;render();},2000);}
+
+/* ===== Full schedule page ===== */
+function renderSchedule(){
+var app=document.getElementById('app');
+var h='';
+h+='<div style="text-align:center"><a class="btn line sm" href="#/">&#8592; The Front Page</a></div>';
+h+='<div class="kicker" style="margin-top:14px">World Cup 2026</div>';
+h+='<h1 class="headline">Full Match Schedule</h1>';
+h+='<div class="subhead">All 104 fixtures &mdash; group stage through to the final in New York.</div>';
+h+='<div class="section-rule"><span>Group Stage &middot; 11&ndash;27 June</span></div>';
+['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){
+var members=GROUPS_MEMBERS[g]||[];
+var matches=FIXTURES.filter(function(f){return f.g===g;});
+h+='<div style="margin-bottom:22px">';
+h+='<div style="font-family:\'Roboto\',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:3px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:8px">Group '+g+' &mdash; '+members.map(function(t){return (FLAGS[t]||'')+' '+t;}).join(' &middot; ')+'</div>';
+h+='<table style="width:100%;border-collapse:collapse">';
+matches.forEach(function(f){
+h+='<tr style="border-bottom:1px dotted var(--hair)">'+
+'<td style="padding:6px 8px 6px 0;font-size:12px;color:var(--faint);white-space:nowrap;width:68px">'+esc(f.d)+'</td>'+
+'<td style="padding:6px 4px;font-size:15px;text-align:right;white-space:nowrap">'+(FLAGS[f.h]||'')+' <strong>'+esc(f.h)+'</strong></td>'+
+'<td style="padding:6px 10px;font-size:11px;color:var(--faint);text-align:center;white-space:nowrap">vs</td>'+
+'<td style="padding:6px 4px;font-size:15px;white-space:nowrap"><strong>'+esc(f.a)+'</strong> '+(FLAGS[f.a]||'')+'</td>'+
+'<td style="padding:6px 0 6px 8px;font-size:12px;color:var(--faint);text-align:right">'+esc(f.v||'')+'</td>'+
+'</tr>';
+});
+h+='</table></div>';
+});
+h+='<div class="section-rule"><span>Knockout Rounds &middot; 28 June &ndash; 19 July</span></div>';
+h+='<table style="width:100%;border-collapse:collapse">';
+FIXTURES.filter(function(f){return !!f.round;}).forEach(function(f){
+h+='<tr style="border-bottom:1px dotted var(--hair)">'+
+'<td style="padding:10px 8px 10px 0;font-size:12px;color:var(--faint);white-space:nowrap;width:100px">'+esc(f.d)+'</td>'+
+'<td style="padding:10px 4px;font-size:16px;font-weight:700">'+esc(f.label||'')+'</td>'+
+'<td style="padding:10px 0 10px 8px;font-size:12px;color:var(--faint);text-align:right">'+esc(f.v||f.note||'')+'</td>'+
+'</tr>';
+});
+h+='</table>';
+h+='<div class="foot">Schedule based on the official FIFA World Cup 2026 fixture list. Knockout opponents confirmed after the group stage.</div>';
+app.innerHTML=h;
+setDateline();
+renderModals();
+}
 
 /* ===== Router ===== */
 window.addEventListener("hashchange", render);
