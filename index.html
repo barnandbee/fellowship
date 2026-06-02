@@ -267,11 +267,11 @@ var c=size/2,rings=3+(seed%3),sides=3+(seed%6),nodes=teams.length,parts=[];
 parts.push('<rect x="0" y="0" width="'+size+'" height="'+size+'" rx="20" fill="'+dark+'"/>');
 parts.push('<rect x="0" y="0" width="'+size+'" height="'+size+'" rx="20" fill="url(#g'+(seed%1000)+')" opacity="0.5"/>');
 for(var i=rings;i>=1;i--){var r=(i/rings)*(size*0.42),rot=rnd()*Math.PI,op=0.12+(i/rings)*0.4,col=i%2===0?accent:accent2;
-parts.push('<path d="'+poly(c,c,r,sides,rot,0.12,rnd)+'" fill="none" stroke="'+col+'" stroke-width="'+(0.6+rnd()*1.6).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>');}  
+parts.push('<path d="'+poly(c,c,r,sides,rot,0.12,rnd)+'" fill="none" stroke="'+col+'" stroke-width="'+(0.6+rnd()*1.6).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>');} 
 var orbit=size*0.34;
 for(var j=0;j<nodes;j++){var a=(j/nodes)*Math.PI*2+seed,x=c+Math.cos(a)*orbit,y=c+Math.sin(a)*orbit,rad=1.6+rnd()*2.6;
 parts.push('<line x1="'+c+'" y1="'+c+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="'+accent+'" stroke-width="0.5" opacity="0.25"/>');
-parts.push('<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+(j%5===0?spark:accent)+'"/>');}  
+parts.push('<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+(j%5===0?spark:accent)+'"/>');} 
 parts.push('<path d="'+poly(c,c,size*0.12,sides,rnd()*6,0.05,rnd)+'" fill="'+spark+'" opacity="0.9"/>');
 parts.push('<circle cx="'+c+'" cy="'+c+'" r="'+(size*0.05).toFixed(1)+'" fill="'+dark+'"/>');
 var grad='<radialGradient id="g'+(seed%1000)+'" cx="50%" cy="40%" r="70%"><stop offset="0%" stop-color="'+accent2+'" stop-opacity="0.35"/><stop offset="100%" stop-color="'+dark+'" stop-opacity="0"/></radialGradient>';
@@ -290,9 +290,9 @@ return {allocations:allocations,unallocated:t.slice(idx)};
 }
 
 /* ===== Render ===== */
-var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],_pendingEntrants:null,_country:null,_countryTab:'almanac',_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:''};
+var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],lbConfig:null,_pendingEntrants:null,_country:null,_countryTab:'almanac',_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:'',_savingLb:false,_saveLbOk:false,_saveLbErr:''};
 
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 function getEntries(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return [];}}
 function setEntries(a){localStorage.setItem(LS_KEY,JSON.stringify(a));}
 
@@ -303,7 +303,7 @@ var L=document.getElementById("dateL"); if(L)L.textContent=d.toLocaleDateString(
 }
 
 function teamEntry(name){
-return '<div class="entry" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'  
+return '<div class="entry" onclick="showCountry(\'' +name.replace(/'/g,"\\'")+ '\')">'
 +'<span class="fl">'+(FLAGS[name]||"")+"</span><span>"+esc(name)+"</span><span class=\"dots\"></span></div>";
 }
 function teamInline(name){
@@ -449,9 +449,15 @@ var per=Math.floor(TEAMS.length/Math.max(pend.length,1));
 var unsaved=JSON.stringify(pend)!==JSON.stringify(state.entrants);
 inner+='<label class="lbl">GitHub Token (Contents: Read &amp; write — stored in browser only)</label>'+
 '<input class="input" id="ghtoken" type="password" placeholder="ghp_&hellip;" value="'+esc(localStorage.getItem('wcsweep_gh_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_gh_token\',this.value)" style="margin-bottom:14px">';
-inner+='<label class="lbl">Firebase Realtime Database URL (game leaderboard &mdash; stored in browser only)</label>'+
-'<input class="input" id="fburl" type="text" placeholder="https://your-project-default-rtdb.firebaseio.com" value="'+esc(localStorage.getItem('wcsweep_fb_url')||'')+'" oninput="localStorage.setItem(\'wcsweep_fb_url\',this.value)" style="margin-bottom:4px">'+
-'<p style="font-size:11px;color:var(--faint);margin-bottom:20px">Free setup: firebase.google.com &rarr; new project &rarr; Realtime Database &rarr; Start in Test Mode. Paste the database URL above.</p>';
+inner+='<label class="lbl">Leaderboard Repo (public GitHub repo to hold score issues, e.g. your-name/sweep-scores)</label>'+
+'<input class="input" id="lbrepo" type="text" placeholder="username/sweep-scores" value="'+esc(localStorage.getItem('wcsweep_lb_repo')||'')+'" oninput="localStorage.setItem(\'wcsweep_lb_repo\',this.value)" style="margin-bottom:8px">'+
+'<label class="lbl">Leaderboard Token (fine-grained PAT &mdash; Issues: write on leaderboard repo only)</label>'+
+'<input class="input" id="lbtoken" type="password" placeholder="github_pat_&hellip;" value="'+esc(localStorage.getItem('wcsweep_lb_token')||'')+'" oninput="localStorage.setItem(\'wcsweep_lb_token\',this.value)" style="margin-bottom:4px">'+
+'<p style="font-size:11px;color:var(--faint);margin-bottom:8px">Create a free public repo for scores, then generate a fine-grained PAT (GitHub Settings &rarr; Developer settings &rarr; Fine-grained tokens) with Issues: write on that repo only.</p>'+
+'<button class="btn line sm" onclick="saveLbConfig()" '+(state._savingLb?'disabled':'')+' style="margin-bottom:4px">'+(state._savingLb?'Saving&hellip;':'Save Leaderboard Config &mdash; All Players Can Submit')+'</button>'+
+(state._saveLbOk?'<p style="color:green;font-size:12px;margin-bottom:4px;font-style:italic">&#10003; Saved! All visitors can now submit scores.</p>':'')+
+(state._saveLbErr?'<p style="color:var(--accent);font-size:12px;margin-bottom:4px;font-style:italic">Error: '+esc(state._saveLbErr)+'</p>':'')+
+'<div style="height:12px"></div>';
 inner+='<div class="section-rule"><span>The Register</span></div>';
 inner+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
 '<input class="input" id="newEntrant" placeholder="Name" style="margin:0;flex:1" onkeydown="if(event.key===\'Enter\')addPending()">'+
@@ -584,6 +590,22 @@ function resetDraw(){
     function(){state._resetting=true;state._publishErr='';renderModals();},
     function(){state._resetting=false;state.draw=null;state._publishOk=false;render();},
     function(msg){state._resetting=false;state._publishErr=msg;renderModals();}
+  );
+}
+function saveLbConfig(){
+  var repo=(document.getElementById('lbrepo')||{}).value||localStorage.getItem('wcsweep_lb_repo')||'';
+  var token=(document.getElementById('lbtoken')||{}).value||localStorage.getItem('wcsweep_lb_token')||'';
+  repo=repo.trim();token=token.trim();
+  if(!repo||!token){alert('Enter both the leaderboard repo and token first.');return;}
+  localStorage.setItem('wcsweep_lb_repo',repo);
+  localStorage.setItem('wcsweep_lb_token',token);
+  commitFile(
+    'lb.json',
+    JSON.stringify({repo:repo,token:token},null,2)+'\n',
+    'update leaderboard config',
+    function(){state._savingLb=true;state._saveLbOk=false;state._saveLbErr='';renderModals();},
+    function(){state._savingLb=false;state._saveLbOk=true;state.lbConfig={repo:repo,token:token};renderModals();},
+    function(msg){state._savingLb=false;state._saveLbErr=msg;renderModals();}
   );
 }
 function copyText(txt){
@@ -816,21 +838,32 @@ ctx.fillText(title,W/2,midY-Math.floor(C*0.4));
 var lines=sub.split('\n');ctx.font=Math.floor(C*0.62)+'px Roboto,sans-serif';ctx.fillStyle='rgba(255,255,255,0.82)';
 lines.forEach(function(line,i){ctx.fillText(line,W/2,midY+Math.floor(C*(0.65+i*0.95)));});
 }
-function gotFbUrl(){return(localStorage.getItem('wcsweep_fb_url')||'').trim().replace(/\/$/,'');}
+function gotGhLbRepo(){return((state.lbConfig&&state.lbConfig.repo)||localStorage.getItem('wcsweep_lb_repo')||'').trim();}
+function gotGhLbToken(){return((state.lbConfig&&state.lbConfig.token)||localStorage.getItem('wcsweep_lb_token')||'').trim();}
 function gotLoadAndRenderScores(){
 var el=document.getElementById('got-scores');if(!el)return;
-var url=gotFbUrl();
-if(!url){el.innerHTML='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px;margin:8px 0">Global leaderboard not yet configured — organiser can add a Firebase Realtime Database URL in the admin panel.</p>';return;}
+var repo=gotGhLbRepo();
+if(!repo){el.innerHTML='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px;margin:8px 0">Global leaderboard not yet configured &mdash; organiser can set it up in the admin panel.</p>';return;}
 GOTLB.scoresLoading=true;gotRenderScores();
-fetch(url+'/scores.json').then(function(r){return r.ok?r.json():null;}).then(function(data){
+var hdrs={'Accept':'application/vnd.github+json'};
+var tok=gotGhLbToken();if(tok)hdrs['Authorization']='Bearer '+tok;
+fetch('https://api.github.com/repos/'+repo+'/issues?per_page=100&state=open&sort=created&direction=desc',{headers:hdrs})
+.then(function(r){return r.ok?r.json():[]; })
+.then(function(issues){
 GOTLB.scoresLoading=false;
-if(!data){GOTLB.scores=[];}else{var a=[];Object.keys(data).forEach(function(k){if(data[k]&&data[k].name)a.push(data[k]);});a.sort(function(a,b){return b.score-a.score;});GOTLB.scores=a.slice(0,10);}
+var scores=[];
+(issues||[]).forEach(function(issue){
+  var parts=(issue.title||'').split('|');
+  if(parts.length>=3&&parts[0]==='SCORE'){var sc=parseInt(parts[2],10);if(!isNaN(sc))scores.push({name:parts[1],score:sc,date:parts[3]||''}); }
+});
+scores.sort(function(a,b){return b.score-a.score;});
+GOTLB.scores=scores.slice(0,10);
 gotRenderScores();
-}).catch(function(){GOTLB.scoresLoading=false;GOTLB.scores=[];gotRenderScores();});}
+}).catch(function(){GOTLB.scoresLoading=false;GOTLB.scores=[];gotRenderScores();}); }
 function gotRenderScores(){
 var el=document.getElementById('got-scores');if(!el)return;
 var h='<div class="section-rule" style="margin:18px 0 10px"><span>Global Leaderboard</span></div>';
-if(!gotFbUrl()){h+='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px">Global leaderboard not yet configured &mdash; organiser can add a Firebase Realtime Database URL in the admin panel.</p>';}
+if(!gotGhLbRepo()){h+='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px">Global leaderboard not yet configured &mdash; organiser can set it up in the admin panel.</p>';}
 else if(GOTLB.scoresLoading){h+='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px">Loading&hellip;</p>';}
 else if(!GOTLB.scores.length){h+='<p style="text-align:center;color:var(--faint);font-style:italic;font-size:13px">No scores yet &mdash; be the first!</p>';}
 else{
@@ -878,12 +911,17 @@ gotRenderEntry();}
 function gotLbSubmit(){
 var g=GOT,total=(g.score[0]||0)+(g.score[1]||0);
 var name=GOTLB.chars.join('');
-var url=gotFbUrl();
-if(!url){GOTLB.submitted=true;gotRenderEntry();return;}
+var repo=gotGhLbRepo(),tok=gotGhLbToken();
+if(!repo||!tok){GOTLB.submitted=true;gotRenderEntry();return;}
 GOTLB.submitting=true;gotRenderEntry();
-fetch(url+'/scores.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,score:total,date:new Date().toISOString().slice(0,10)})})
-.then(function(){GOTLB.submitting=false;GOTLB.submitted=true;gotRenderEntry();gotLoadAndRenderScores();})
-.catch(function(){GOTLB.submitting=false;GOTLB.submitted=true;gotRenderEntry();});}
+fetch('https://api.github.com/repos/'+repo+'/issues',{
+  method:'POST',
+  headers:{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+  body:JSON.stringify({title:'SCORE|'+name+'|'+total+'|'+new Date().toISOString().slice(0,10)})
+}).then(function(r){
+  GOTLB.submitting=false;GOTLB.submitted=true;gotRenderEntry();
+  if(r.ok)gotLoadAndRenderScores();
+}).catch(function(){GOTLB.submitting=false;GOTLB.submitted=true;gotRenderEntry();}); }
 function renderGame(){
 var app=document.getElementById('app');
 var h='';
@@ -917,11 +955,13 @@ function initApp(){
   var t=Date.now();
   Promise.all([
     fetch('results.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
-    fetch('entrants.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+    fetch('entrants.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+    fetch('lb.json?_='+t).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
   ]).then(function(res){
-    var draw=res[0],ents=res[1];
+    var draw=res[0],ents=res[1],lb=res[2];
     if(draw&&draw.allocations)state.draw=draw;
     if(Array.isArray(ents))state.entrants=ents;
+    if(lb&&lb.repo)state.lbConfig=lb;
     render();
   }).catch(function(){render();});
 }
