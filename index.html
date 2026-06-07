@@ -12,6 +12,7 @@
     --ink:#1a1814; --ink-soft:#46413a; --faint:#7a7066;
     --paper:#f4efe2; --paper-2:#efe8d8; --rule:#1a1814; --hair:#c9bfa9;
     --accent:#7a1f12; /* oxblood */
+    --paper-light:#fbf8ef; --hover-bg:#efe7d4;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
@@ -68,7 +69,7 @@
   /* ---- Forms / buttons ---- */
   label.lbl{display:block; font-family:'Roboto',sans-serif; text-transform:uppercase;
     letter-spacing:2px; font-size:11px; color:var(--ink-soft); margin-bottom:6px}
-  .input{width:100%; background:#fbf8ef; border:1px solid var(--ink); color:var(--ink);
+  .input{width:100%; background:var(--paper-light); border:1px solid var(--ink); color:var(--ink);
     padding:12px 14px; font-size:17px; font-family:inherit; margin-bottom:14px}
   .input:focus{outline:none; box-shadow:inset 0 0 0 1px var(--ink)}
   textarea.input{min-height:110px; font-family:'Courier New',monospace; font-size:12px; resize:vertical}
@@ -98,7 +99,7 @@
   .entry .fl{font-size:14px}
   .entry .dots{flex:1; border-bottom:1px dotted var(--hair); transform:translateY(-4px)}
   /* ---- Allocations (article columns) ---- */
-  .person{break-inside:avoid; border:1px solid var(--ink); padding:16px; margin-bottom:18px; background:#fbf8ef}
+  .person{break-inside:avoid; border:1px solid var(--ink); padding:16px; margin-bottom:18px; background:var(--paper-light)}
   .articles{column-count:2; column-gap:22px}
   @media(max-width:680px){.articles{column-count:1}}
   .person .who{font-family:'Roboto',sans-serif; font-weight:900; font-size:22px; line-height:1}
@@ -132,11 +133,58 @@
   .standings th{font-family:'Roboto',sans-serif; text-transform:uppercase; letter-spacing:1px;
     font-size:10px; color:var(--ink-soft); text-align:left; padding:8px 10px; border-bottom:1px solid var(--ink)}
   .standings td{padding:9px 10px; border-bottom:1px dotted var(--hair); cursor:pointer}
-  .standings tr:hover td{background:#efe7d4; color:var(--accent)}
+  .standings tr:hover td{background:var(--hover-bg); color:var(--accent)}
   .standings .rk{font-family:'Roboto',sans-serif; font-weight:900; font-size:18px; width:54px}
   .standings .fl{font-size:15px}
   .standings .more{text-align:right; font-style:italic; color:var(--faint); font-size:13px; width:64px}
   a.btn{text-decoration:none; text-align:center}
+  /* ==== Dark mode ==== */
+  [data-theme="dark"]{
+    --ink:#f0ebe0; --ink-soft:#b0a898; --faint:#6a6258;
+    --paper:#1c1a16; --paper-2:#242018; --rule:#f0ebe0; --hair:#3a342c;
+    --accent:#e86050; --paper-light:#252220; --hover-bg:#2e2924;
+  }
+  [data-theme="dark"] body{background:repeating-linear-gradient(0deg,rgba(255,255,255,0.014) 0 2px,transparent 2px 4px),var(--paper);}
+  [data-theme="dark"] .sheet{box-shadow:0 1px 0 rgba(240,235,224,0.08),6px 8px 0 rgba(0,0,0,0.38);}
+  [data-theme="dark"] .box{box-shadow:6px 8px 0 rgba(0,0,0,0.48);}
+  /* ==== Pitch mode ==== */
+  [data-theme="pitch"]{
+    --ink:#f0f8e8; --ink-soft:#b0d098; --faint:#70a060;
+    --paper:#2d8030; --paper-2:#28722a; --rule:#f0f8e8; --hair:#3a9a3d;
+    --accent:#ffd700; --paper-light:#329635; --hover-bg:#3aaa3d;
+  }
+  [data-theme="pitch"] body{
+    background:repeating-linear-gradient(180deg,rgba(0,0,0,0.09) 0 56px,transparent 56px 112px),var(--paper);
+  }
+  [data-theme="pitch"] .sheet{
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,0.04) 0 56px,transparent 56px 112px),var(--paper);
+    border-color:rgba(255,255,255,0.28);
+    box-shadow:0 1px 0 rgba(255,255,255,0.12),6px 8px 0 rgba(0,0,0,0.22);
+  }
+  [data-theme="pitch"] .box{border-color:rgba(255,255,255,0.28);box-shadow:6px 8px 0 rgba(0,0,0,0.22);}
+  /* ==== Corner flags (pitch mode) ==== */
+  .corner-flag{position:fixed;z-index:200;pointer-events:none;width:3px;height:30px;background:rgba(255,255,255,0.88);border-radius:1px;}
+  .corner-flag::before{content:'';position:absolute;top:0;left:3px;width:0;height:0;border-top:10px solid #ffd700;border-right:16px solid transparent;}
+  .corner-flag-tl{top:14px;left:16px;}
+  .corner-flag-tr{top:14px;right:16px;transform:scaleX(-1);}
+  .corner-flag-bl{bottom:14px;left:16px;transform:scaleY(-1);}
+  .corner-flag-br{bottom:14px;right:16px;transform:scale(-1,-1);}
+  /* ==== Theme switcher ==== */
+  .theme-sw{position:fixed;bottom:18px;right:18px;z-index:150;display:flex;
+    background:var(--paper);border:1px solid var(--hair);box-shadow:2px 2px 0 var(--ink);}
+  .theme-sw button{background:none;border:none;cursor:pointer;padding:6px 10px;
+    font-family:'Roboto',sans-serif;font-size:10px;text-transform:uppercase;
+    letter-spacing:1.5px;font-weight:700;color:var(--faint);line-height:1.2;border-bottom:2px solid transparent;}
+  .theme-sw button.tsw-on{color:var(--accent);border-bottom-color:var(--accent);}
+  .theme-sw button:hover{color:var(--ink);}
+  /* ==== Schedule responsive ==== */
+  .sched-table{width:100%;border-collapse:collapse;}
+  .sched-date{padding:6px 8px 6px 0;font-size:12px;color:var(--faint);white-space:nowrap;width:58px;}
+  .sched-team{padding:6px 4px;font-size:15px;}
+  .sched-home{text-align:right;}
+  .sched-vs{padding:6px 8px;font-size:11px;color:var(--faint);text-align:center;white-space:nowrap;}
+  .sched-venue{padding:6px 0 6px 6px;font-size:12px;color:var(--faint);text-align:right;white-space:nowrap;}
+  @media(max-width:540px){.sched-venue{display:none;}.sched-team{font-size:13px;}.sched-vs{padding:6px 4px;}}
 </style>
 </head>
 <body>
@@ -687,14 +735,14 @@ var members=GROUPS_MEMBERS[g]||[];
 var matches=FIXTURES.filter(function(f){return f.g===g;});
 h+='<div style="margin-bottom:22px">';
 h+='<div style="font-family:\'Roboto\',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:3px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:8px">Group '+g+' &mdash; '+members.map(function(t){return (FLAGS[t]||'')+' '+t;}).join(' &middot; ')+'</div>';
-h+='<table style="width:100%;border-collapse:collapse">';
+h+='<table class="sched-table">';
 matches.forEach(function(f){
 h+='<tr style="border-bottom:1px dotted var(--hair)">'+
-'<td style="padding:6px 8px 6px 0;font-size:12px;color:var(--faint);white-space:nowrap;width:68px">'+esc(f.d)+'</td>'+
-'<td style="padding:6px 4px;font-size:15px;text-align:right;white-space:nowrap">'+(FLAGS[f.h]||'')+' <strong>'+esc(f.h)+'</strong></td>'+
-'<td style="padding:6px 10px;font-size:11px;color:var(--faint);text-align:center;white-space:nowrap">vs</td>'+
-'<td style="padding:6px 4px;font-size:15px;white-space:nowrap"><strong>'+esc(f.a)+'</strong> '+(FLAGS[f.a]||'')+'</td>'+
-'<td style="padding:6px 0 6px 8px;font-size:12px;color:var(--faint);text-align:right">'+esc(f.v||'')+'</td>'+
+'<td class="sched-date">'+esc(f.d)+'</td>'+
+'<td class="sched-team sched-home">'+(FLAGS[f.h]||'')+' <strong>'+esc(f.h)+'</strong></td>'+
+'<td class="sched-vs">vs</td>'+
+'<td class="sched-team"><strong>'+esc(f.a)+'</strong> '+(FLAGS[f.a]||'')+'</td>'+
+'<td class="sched-venue">'+esc(f.v||'')+'</td>'+
 '</tr>';
 });
 h+='</table></div>';
@@ -877,7 +925,7 @@ var el=document.getElementById('got-entry');if(!el)return;
 var g=GOT,total=(g.score[0]||0)+(g.score[1]||0);
 var h='';
 if(g.phase==='fulltime'&&!GOTLB.submitted&&total>0){
-h+='<div style="border:2px solid var(--ink);padding:20px 20px 22px;margin:14px 0;text-align:center;background:#fbf8ef">';
+h+='<div style="border:2px solid var(--ink);padding:20px 20px 22px;margin:14px 0;text-align:center;background:var(--paper-light)">';
 h+='<div class="kicker" style="margin-bottom:4px">Full Time &middot; Enter Your Initials</div>';
 h+='<div style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:30px;margin:4px 0 2px">'+total+' GOAL'+(total!==1?'S':'')+'</div>';
 h+='<div class="byline" style="margin:6px 0 16px">Scroll letters, then submit to the global board</div>';
@@ -894,7 +942,7 @@ h+='</div>';
 h+='<button class="btn" style="max-width:260px" onclick="gotLbSubmit()" '+(GOTLB.submitting?'disabled':'')+'>'+(GOTLB.submitting?'Submitting&hellip;':'Submit to Board &rarr;')+'</button>';
 h+='</div>';
 }else if(g.phase==='fulltime'&&(GOTLB.submitted||total===0)){
-h+='<div style="border:1px solid var(--hair);padding:14px 20px;margin:12px 0;text-align:center;background:#fbf8ef">';
+h+='<div style="border:1px solid var(--hair);padding:14px 20px;margin:12px 0;text-align:center;background:var(--paper-light)">';
 if(GOTLB.submitted){h+='<p style="color:green;font-style:italic;margin-bottom:6px">&#10003; Score submitted &mdash; '+esc(GOTLB.chars.join(''))+'</p>';}
 h+='<div style="font-family:\'Roboto\',sans-serif;font-weight:900;font-size:24px;margin-bottom:8px">'+total+' GOAL'+(total!==1?'S':'')+'</div>';
 h+='<button class="btn line sm" onclick="gotAction()">Play Again</button>';
@@ -946,11 +994,30 @@ gotRenderEntry();
 gotLoadAndRenderScores();
 }
 
+/* ===== Themes ===== */
+function applyTheme(t){
+t=t||'';
+localStorage.setItem('wcsweep_theme',t);
+document.documentElement.setAttribute('data-theme',t);
+document.querySelectorAll('.corner-flag').forEach(function(el){el.parentNode.removeChild(el);});
+if(t==='pitch'){['tl','tr','bl','br'].forEach(function(pos){var el=document.createElement('div');el.className='corner-flag corner-flag-'+pos;document.body.appendChild(el);});}
+var sw=document.getElementById('theme-sw');
+if(sw)sw.querySelectorAll('button').forEach(function(btn){btn.className=btn.dataset.t===t?'tsw-on':'';});
+}
+function initTheme(){
+var sw=document.createElement('div');sw.id='theme-sw';sw.className='theme-sw';document.body.appendChild(sw);
+[['','Day'],['dark','Night'],['pitch','Pitch ⚽']].forEach(function(opt){
+var btn=document.createElement('button');btn.textContent=opt[1];btn.dataset.t=opt[0];
+btn.onclick=function(){applyTheme(opt[0]);};sw.appendChild(btn);});
+applyTheme(localStorage.getItem('wcsweep_theme')||'');
+}
+
 /* ===== Router ===== */
 window.addEventListener("hashchange", render);
 
 /* ===== Boot ===== */
 function initApp(){
+  initTheme();
   if(typeof RESULTS!=="undefined"&&RESULTS&&RESULTS.allocations){state.draw=RESULTS;render();return;}
   var t=Date.now();
   Promise.all([
