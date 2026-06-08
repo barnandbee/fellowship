@@ -1,1 +1,133 @@
-null
+{
+  "allocations": [
+    {
+      "name": "Adam T",
+      "teams": [
+        "Canada",
+        "Senegal",
+        "Sweden"
+      ]
+    },
+    {
+      "name": "Adam B",
+      "teams": [
+        "Norway",
+        "Ivory Coast",
+        "Iraq"
+      ]
+    },
+    {
+      "name": "Lloyd B",
+      "teams": [
+        "Brazil",
+        "England",
+        "DR Congo"
+      ]
+    },
+    {
+      "name": "Barnaby M",
+      "teams": [
+        "Qatar",
+        "Iran",
+        "Morocco"
+      ]
+    },
+    {
+      "name": "Sean P",
+      "teams": [
+        "United States",
+        "Tunisia",
+        "South Africa"
+      ]
+    },
+    {
+      "name": "Stu W",
+      "teams": [
+        "Argentina",
+        "Cape Verde",
+        "Spain"
+      ]
+    },
+    {
+      "name": "Johnny J",
+      "teams": [
+        "Germany",
+        "Jordan",
+        "Ghana"
+      ]
+    },
+    {
+      "name": "James S",
+      "teams": [
+        "Australia",
+        "Haiti",
+        "Austria"
+      ]
+    },
+    {
+      "name": "Ben H",
+      "teams": [
+        "New Zealand",
+        "Egypt",
+        "Czech Republic"
+      ]
+    },
+    {
+      "name": "Alex E",
+      "teams": [
+        "Uzbekistan",
+        "Switzerland",
+        "Algeria"
+      ]
+    },
+    {
+      "name": "Chris H",
+      "teams": [
+        "Curaçao",
+        "Saudi Arabia",
+        "Panama"
+      ]
+    },
+    {
+      "name": "Iain S",
+      "teams": [
+        "Croatia",
+        "Japan",
+        "Bosnia and Herzegovina"
+      ]
+    },
+    {
+      "name": "Jonny L",
+      "teams": [
+        "Colombia",
+        "Mexico",
+        "France"
+      ]
+    },
+    {
+      "name": "Dan W",
+      "teams": [
+        "Paraguay",
+        "Belgium",
+        "Uruguay"
+      ]
+    },
+    {
+      "name": "Arthur M",
+      "teams": [
+        "Turkey",
+        "Portugal",
+        "South Korea"
+      ]
+    },
+    {
+      "name": "Kim M",
+      "teams": [
+        "Netherlands",
+        "Ecuador",
+        "Scotland"
+      ]
+    }
+  ],
+  "unallocated": []
+}
