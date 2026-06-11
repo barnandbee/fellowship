@@ -338,7 +338,7 @@ return {allocations:allocations,unallocated:t.slice(idx)};
 }
 
 /* ===== Render ===== */
-var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],lbConfig:null,_pendingEntrants:null,_country:null,_countryTab:'almanac',_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:'',_savingLb:false,_saveLbOk:false,_saveLbErr:''};
+var state={admin:false,authed:false,clicks:0,draw:null,entrants:[],lbConfig:null,_pendingEntrants:null,_country:null,_countryTab:'almanac',_copied:false,_publishing:false,_publishOk:false,_publishErr:'',_resetting:false,_savingEntrants:false,_saveEntrantsOk:false,_saveEntrantsErr:'',_savingLb:false,_saveLbOk:false,_saveLbErr:'',_scheduleView:'teams'};
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 function getEntries(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"[]");}catch(e){return [];}}
@@ -722,6 +722,7 @@ renderModals();
 function copyShare(){copyText(location.href);state._copiedShare=true;render();setTimeout(function(){state._copiedShare=false;render();},2000);}
 
 /* ===== Full schedule page ===== */
+function setScheduleView(v){state._scheduleView=v;render();}
 function renderSchedule(){
 var app=document.getElementById('app');
 var h='';
@@ -729,6 +730,23 @@ h+='<div style="text-align:center"><a class="btn line sm" href="#/">&#8592; The 
 h+='<div class="kicker" style="margin-top:14px">World Cup 2026</div>';
 h+='<h1 class="headline">Full Match Schedule</h1>';
 h+='<div class="subhead">All 104 fixtures &mdash; group stage through to the final in New York.</div>';
+var hasDraw=!!(state.draw&&state.draw.allocations);
+var view=(state._scheduleView==='people'&&hasDraw)?'people':'teams';
+var owners={};
+if(hasDraw)state.draw.allocations.forEach(function(a){a.teams.forEach(function(t){owners[t]=a.name;});});
+function homeCell(team){
+var label=(view==='people'&&owners[team])?'<a class="who-link" href="#/u/'+encodeURIComponent(owners[team])+'">'+esc(owners[team])+'</a>':esc(team);
+return (FLAGS[team]||'')+' <strong>'+label+'</strong>';
+}
+function awayCell(team){
+var label=(view==='people'&&owners[team])?'<a class="who-link" href="#/u/'+encodeURIComponent(owners[team])+'">'+esc(owners[team])+'</a>':esc(team);
+return '<strong>'+label+'</strong> '+(FLAGS[team]||'');
+}
+h+='<div style="display:flex;justify-content:center;gap:8px;margin:16px 0 4px;flex-wrap:wrap">'+
+'<button class="btn '+(view==='teams'?'':'line')+' sm" onclick="setScheduleView(\'teams\')">Teams</button>'+
+'<button class="btn '+(view==='people'?'':'line')+' sm" onclick="setScheduleView(\'people\')" '+(hasDraw?'':'disabled title="Available once the draw is published"')+'>Brethren Binoculars &#128301;</button>'+
+'</div>';
+if(!hasDraw)h+='<p class="byline" style="margin-top:8px">Brethren Binoculars unlocks once the draw is published.</p>';
 h+='<div class="section-rule"><span>Group Stage &middot; 11&ndash;27 June</span></div>';
 ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(g){
 var members=GROUPS_MEMBERS[g]||[];
@@ -739,9 +757,9 @@ h+='<table class="sched-table">';
 matches.forEach(function(f){
 h+='<tr style="border-bottom:1px dotted var(--hair)">'+
 '<td class="sched-date">'+esc(f.d)+'</td>'+
-'<td class="sched-team sched-home">'+(FLAGS[f.h]||'')+' <strong>'+esc(f.h)+'</strong></td>'+
+'<td class="sched-team sched-home">'+homeCell(f.h)+'</td>'+
 '<td class="sched-vs">vs</td>'+
-'<td class="sched-team"><strong>'+esc(f.a)+'</strong> '+(FLAGS[f.a]||'')+'</td>'+
+'<td class="sched-team">'+awayCell(f.a)+'</td>'+
 '<td class="sched-venue">'+esc(f.v||'')+'</td>'+
 '</tr>';
 });
